@@ -3,6 +3,7 @@ import manhattanDistance from '@/utils/manhattanDistance'
 import goalStateTemplate from '@/assets/goalStateTemplate'
 import type IAlgorithmClass from '@/interfaces/IAlgorithmClass'
 import { message } from 'ant-design-vue'
+import { translate } from '@/i18n'
 
 class Node {
   state: IGameSetup
@@ -139,7 +140,7 @@ export default class AStarSearch implements IAlgorithmClass {
     this.executionTime = endTime - startTime
 
     this.algorithmEnd = true
-    message.error('No solution found!')
+    message.error(translate('messages.noSolution'))
     return
   }
 
@@ -158,7 +159,7 @@ export default class AStarSearch implements IAlgorithmClass {
 
   advanceOneStep(): IGameSetup | null {
     if (this.algorithmEnd) {
-      message.warning('Algorithm already completed.')
+      message.warning(translate('messages.algorithmCompleted'))
       return null
     }
 
@@ -178,7 +179,7 @@ export default class AStarSearch implements IAlgorithmClass {
       this.executionTime = endTime - this.startTime
 
       this.algorithmEnd = true
-      message.error('No solution found!')
+      message.error(translate('messages.noSolution'))
       return null
     }
 

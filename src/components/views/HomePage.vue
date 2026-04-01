@@ -3,12 +3,26 @@
     <a-layout-header class="layout__header">
       <div class="header__title">
         <img src="@/assets/puzzle-icon.svg" />
-        <h1>8-Puzzle AI Game</h1>
+        <h1>{{ t('app.title') }}</h1>
       </div>
 
       <div class="header__menu">
-        <a-button @click="handleOpenContact" class="menu__button">Contact</a-button>
-        <a-button @click="handleOpenDocumentation" class="menu__button">Documentation</a-button>
+        <a-select v-model:value="locale" class="menu__language-select" size="small">
+          <a-select-option
+            :key="localeOption.value"
+            :value="localeOption.value"
+            v-for="localeOption in localeOptions"
+          >
+            {{ localeOption.label }}
+          </a-select-option>
+        </a-select>
+
+        <a-button @click="handleOpenContact" class="menu__button">{{
+          t('app.menu.contact')
+        }}</a-button>
+        <a-button @click="handleOpenDocumentation" class="menu__button">{{
+          t('app.menu.documentation')
+        }}</a-button>
 
         <a-dropdown class="menu__dropdown">
           <MenuOutlined :style="{ color: '#fff', fontSize: '16px' }" />
@@ -16,10 +30,10 @@
           <template #overlay>
             <a-menu>
               <a-menu-item @click="handleOpenContact">
-                <span>Contact</span>
+                <span>{{ t('app.menu.contact') }}</span>
               </a-menu-item>
               <a-menu-item @click="handleOpenDocumentation">
-                <span>Documentation</span>
+                <span>{{ t('app.menu.documentation') }}</span>
               </a-menu-item>
             </a-menu>
           </template>
@@ -29,7 +43,7 @@
 
     <a-layout-content class="layout__content">
       <div class="content__about-action">
-        <a-button type="default" @click="aboutModalOpen = true">About the 8-Puzzle</a-button>
+        <a-button type="default" @click="aboutModalOpen = true">{{ t('app.menu.about') }}</a-button>
       </div>
 
       <a-modal
@@ -38,49 +52,37 @@
         :width="700"
         @cancel="aboutModalOpen = false"
         centered
-        title="About the 8-Puzzle"
+        :title="t('about.title')"
       >
         <section class="about-modal__content">
           <p>
-            The 8-puzzle is a sliding-tile game played on a 3x3 board. Eight tiles are numbered from
-            1 to 8, and one position is empty. A state is solved when the board matches the goal
-            configuration.
+            {{ t('about.paragraph1') }}
           </p>
           <p>
-            In this app, the empty position is represented by 0 in the setup board. Every move
-            slides one adjacent tile into the empty space, generating a new state that algorithms
-            can explore.
+            {{ t('about.paragraph2') }}
           </p>
 
           <div class="about-modal__goal-state">
             <div class="goal-state__text">
-              <h3>Goal State</h3>
-              <span>The search ends when this arrangement is reached.</span>
+              <h3>{{ t('about.goalTitle') }}</h3>
+              <span>{{ t('about.goalDescription') }}</span>
             </div>
             <GameStateBoard :gameSetupData="goalStateTemplate" :showHeuristic="false" />
           </div>
 
           <ul class="about-modal__rules">
-            <li>
-              Only legal moves are allowed: up, down, left, and right relative to the empty tile.
-            </li>
-            <li>
-              Each algorithm explores the state space differently, balancing speed and memory usage.
-            </li>
-            <li>
-              Heuristic-based methods in this project use Manhattan Distance to guide the search.
-            </li>
+            <li>{{ t('about.rule1') }}</li>
+            <li>{{ t('about.rule2') }}</li>
+            <li>{{ t('about.rule3') }}</li>
           </ul>
         </section>
       </a-modal>
 
       <section class="content__game-container">
         <div class="game-container__header">
-          <h2>Game Setup</h2>
+          <h2>{{ t('setup.title') }}</h2>
 
-          <a-tooltip
-            title="Click each tile in the board to choose values from 0 to 8. Value 0 represents the empty spot."
-          >
+          <a-tooltip :title="t('setup.tooltip')">
             <img src="@/assets/info-icon.svg" />
           </a-tooltip>
         </div>
@@ -91,11 +93,9 @@
 
         <div class="game-container__algorithms">
           <div class="algorithms__header">
-            <h2>Search Algorithms</h2>
+            <h2>{{ t('algorithms.title') }}</h2>
 
-            <a-tooltip
-              title="Select the algorithm you want use to do the search in state border. The heuristic used is the Manhattan Distance."
-            >
+            <a-tooltip :title="t('algorithms.tooltip')">
               <img src="@/assets/info-icon.svg" />
             </a-tooltip>
           </div>
@@ -113,10 +113,12 @@
         </div>
 
         <div class="game-container__footer-buttons">
-          <a-button type="dashed" @click="genRandomGameSetup">Random Values</a-button>
-          <a-button type="dashed" @click="checkHValue">Check h-value</a-button>
-          <a-button type="primary" @click="handleStartGame">Start Game</a-button>
-          <a-button type="primary" @click="handleStepGame">Step By Step</a-button>
+          <a-button type="dashed" @click="genRandomGameSetup">{{
+            t('actions.randomValues')
+          }}</a-button>
+          <a-button type="dashed" @click="checkHValue">{{ t('actions.checkHValue') }}</a-button>
+          <a-button type="primary" @click="handleStartGame">{{ t('actions.startGame') }}</a-button>
+          <a-button type="primary" @click="handleStepGame">{{ t('actions.stepByStep') }}</a-button>
         </div>
       </section>
 
@@ -126,17 +128,20 @@
         <LoadingSpinner v-if="resultData.loading"></LoadingSpinner>
         <section v-else-if="resultData.show" class="content__result-container">
           <div class="result__header">
-            <h3>Solution</h3>
+            <h3>{{ t('solution.title') }}</h3>
             <a-tooltip>
               <img src="@/assets/info-icon.svg" />
               <template #title>
                 <div>
-                  <p>Solution Nodes: The number of operations required to reach the goal state.</p>
-                  <p>Generated Nodes: The number of different nodes generated during the search.</p>
-                  <p>Open Nodes: The number of nodes opened during the search.</p>
-                  <p>Max Depth: The maximum depth reached by the search.</p>
-                  <p>Max States Border Size: The maximum number of nodes in the state border.</p>
-                  <p>Execution Time: The time taken to find the solution (in millisecond).</p>
+                  <p>{{ t('stats.solutionNodes') }}: {{ t('stats.tooltip.solutionNodes') }}</p>
+                  <p>{{ t('stats.generatedNodes') }}: {{ t('stats.tooltip.generatedNodes') }}</p>
+                  <p>{{ t('stats.openNodes') }}: {{ t('stats.tooltip.openNodes') }}</p>
+                  <p>{{ t('stats.maxDepth') }}: {{ t('stats.tooltip.maxDepth') }}</p>
+                  <p>
+                    {{ t('stats.maxStatesBorderSize') }}:
+                    {{ t('stats.tooltip.maxStatesBorderSize') }}
+                  </p>
+                  <p>{{ t('stats.executionTime') }}: {{ t('stats.tooltip.executionTime') }}</p>
                 </div>
               </template>
             </a-tooltip>
@@ -144,27 +149,27 @@
 
           <div class="result__stats">
             <span
-              >Solution Nodes: <br />
+              >{{ t('stats.solutionNodes') }}: <br />
               {{ resultData.path.length }}</span
             >
             <span
-              >Generated Nodes: <br />
+              >{{ t('stats.generatedNodes') }}: <br />
               {{ resultData.generatedNodes }}</span
             >
             <span
-              >Open Nodes: <br />
+              >{{ t('stats.openNodes') }}: <br />
               {{ resultData.openNodes }}</span
             >
             <span
-              >Max Depth: <br />
+              >{{ t('stats.maxDepth') }}: <br />
               {{ resultData.maxDepth }}</span
             >
             <span
-              >Max States Border Size: <br />
+              >{{ t('stats.maxStatesBorderSize') }}: <br />
               {{ resultData.maxStateBorder }}</span
             >
             <span v-if="resultData.executionTime != -1"
-              >Execution Time: <br />
+              >{{ t('stats.executionTime') }}: <br />
               {{ resultData.executionTime.toFixed(2) }}ms</span
             >
           </div>
@@ -184,33 +189,35 @@
 
       <template v-if="gameMode == 'step'">
         <section class="content__result-container">
-          <h3>Step by Step Solution State</h3>
+          <h3>{{ t('solution.stepTitle') }}</h3>
 
           <div class="result__stats">
             <span
-              >Generated Nodes: <br />
+              >{{ t('stats.generatedNodes') }}: <br />
               {{ resultData.generatedNodes }}</span
             >
             <span
-              >Open Nodes: <br />
+              >{{ t('stats.openNodes') }}: <br />
               {{ resultData.openNodes }}</span
             >
             <span
-              >Max Depth: <br />
+              >{{ t('stats.maxDepth') }}: <br />
               {{ resultData.maxDepth }}</span
             >
             <span
-              >Max Queue Size: <br />
+              >{{ t('stats.maxQueueSize') }}: <br />
               {{ resultData.maxStateBorder }}</span
             >
           </div>
 
           <div class="result__options">
-            <a-button type="default" @click="resetResult">Reset Game</a-button>
-            <a-button type="default" @click="handleAdvanceStepGame">Next Step</a-button>
+            <a-button type="default" @click="resetResult">{{ t('actions.resetGame') }}</a-button>
+            <a-button type="default" @click="handleAdvanceStepGame">{{
+              t('actions.nextStep')
+            }}</a-button>
           </div>
 
-          <h3>State Border</h3>
+          <h3>{{ t('solution.stateBorder') }}</h3>
 
           <div class="result__grid --bordered">
             <TransitionGroup name="gamestate-change">
@@ -228,7 +235,7 @@
     </a-layout-content>
 
     <a-layout-footer class="layout__footer" @click="handleOpenWebsite">
-      8-Puzzle AI Game © 2023 Created by Pumba Developer
+      {{ t('app.footer') }}
     </a-layout-footer>
   </a-layout>
 </template>
@@ -238,12 +245,14 @@ import GameStateBoard from '@/components/shared/GameStateBoard.vue'
 import GameSetupBoardInput from '@/components/shared/GameSetupBoardInput.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { MenuOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 
 import type { IGameSetup } from '@/interfaces/IGameSetup'
 import type IAlgorithmClass from '@/interfaces/IAlgorithmClass'
+import type { AppLocale } from '@/i18n'
 
 import goalStateTemplate from '@/assets/goalStateTemplate'
 import manhattanDistance from '@/utils/manhattanDistance'
@@ -252,6 +261,8 @@ import BreadthFirstSearch from '@/utils/BreadthFirstSearch'
 import DepthFirstSearch from '@/utils/DepthFirstSearch'
 import GreedyBestFirstSearch from '@/utils/GreedyBestFirstSearch'
 import AStarSearch from '@/utils/AStarSearch'
+
+const { t, locale } = useI18n()
 
 const gameMode = ref<'step' | 'result'>('result')
 const aboutModalOpen = ref(false)
@@ -269,27 +280,41 @@ const resultData = reactive({
   maxStateBorder: 0 as number,
   executionTime: 0 as number
 })
-const algorithmOptions = ref([
+const localeOptions = computed(() => [
+  {
+    value: 'pt-BR' as AppLocale,
+    label: t('app.language.ptBR')
+  },
+  {
+    value: 'es-ES' as AppLocale,
+    label: t('app.language.esES')
+  },
+  {
+    value: 'en-EU' as AppLocale,
+    label: t('app.language.enEU')
+  }
+])
+
+const algorithmOptions = computed(() => [
   {
     value: 'bfs',
-    label: 'Breadth First Search',
-    explanation: 'Explores all neighboring nodes before exploring child nodes.'
+    label: t('algorithms.bfs.label'),
+    explanation: t('algorithms.bfs.explanation')
   },
   {
     value: 'dfs',
-    label: 'Depth First Search',
-    explanation: 'Explores all child nodes before exploring neighboring nodes.'
+    label: t('algorithms.dfs.label'),
+    explanation: t('algorithms.dfs.explanation')
   },
   {
     value: 'gs',
-    label: 'Greedy Search',
-    explanation: 'Explores the node that appears to be the most promising according to a heuristic.'
+    label: t('algorithms.gs.label'),
+    explanation: t('algorithms.gs.explanation')
   },
   {
     value: 'a*',
-    label: 'A* Search',
-    explanation:
-      'Explores the node that appears to be the most promising according to a heuristic and the path cost.'
+    label: t('algorithms.aStar.label'),
+    explanation: t('algorithms.aStar.explanation')
   }
 ])
 
@@ -425,7 +450,7 @@ function checkHValue() {
   if (!gameSetupIsValid()) {
     return
   }
-  message.info(`h-value: ${manhattanDistance(gameSetupData.value)}`)
+  message.info(t('messages.hValue', { value: manhattanDistance(gameSetupData.value) }))
 }
 
 // Verificar se o array possui apenas números de 0 a 8 sem repetição
@@ -439,12 +464,12 @@ function gameSetupIsValid() {
   )
 
   if (isRepeated || isInvalid) {
-    message.error('Please, insert a valid game setup.')
+    message.error(t('messages.invalidSetup'))
     return false
   }
 
   if (!isSolvable(gameSetupData.value)) {
-    message.error('This setup is not solvable. Please, insert a solvable game setup.')
+    message.error(t('messages.unsolvableSetup'))
     return false
   }
 
@@ -531,6 +556,10 @@ function sleep(ms: number) {
       align-items: center;
       gap: 20px;
 
+      .menu__language-select {
+        width: 170px;
+      }
+
       .menu__button {
         display: block;
       }
@@ -540,6 +569,12 @@ function sleep(ms: number) {
       }
 
       @media (max-width: 425px) {
+        gap: 12px;
+
+        .menu__language-select {
+          width: 130px;
+        }
+
         .menu__button {
           display: none;
         }

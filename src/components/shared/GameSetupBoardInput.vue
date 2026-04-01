@@ -20,7 +20,7 @@
               type="button"
               v-for="option in tileOptions"
             >
-              {{ option === '0' ? 'Empty (0)' : option }}
+              {{ option === '0' ? t('boardInput.emptyTile') : option }}
             </button>
 
             <button
@@ -29,7 +29,7 @@
               @click="handleClear(index)"
               type="button"
             >
-              Clear Cell
+              {{ t('boardInput.clearCell') }}
             </button>
           </div>
         </template>
@@ -45,19 +45,20 @@
           type="button"
         >
           <span>{{ piece === '' || piece === '0' ? '' : piece }}</span>
-          <small v-if="piece === ''">set</small>
+          <small v-if="piece === ''">{{ t('boardInput.set') }}</small>
         </button>
       </a-popover>
     </div>
 
     <p class="setup-board__hint">
-      Click a tile to choose a value from 0 to 8. 0 means the empty space.
+      {{ t('boardInput.hint') }}
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import type { IGameSetup } from '@/interfaces/IGameSetup'
 
@@ -71,6 +72,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   (event: 'update:modelValue', value: IGameSetup): void
 }>()
+const { t } = useI18n()
 
 const tileOptions: TileValue[] = ['0', '1', '2', '3', '4', '5', '6', '7', '8']
 const openCellIndex = ref<number | null>(null)

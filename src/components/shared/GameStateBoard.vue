@@ -1,6 +1,8 @@
 <template>
   <div class="game-state-board">
-    <span v-if="showHeuristic">{{ `h = ${manhattanDistance(gameSetupData)}` }}</span>
+    <span v-if="showHeuristic">{{
+      t('board.hValue', { value: manhattanDistance(gameSetupData) })
+    }}</span>
 
     <div class="gamestate-board">
       <template :key="index" v-for="(piece, index) in gameSetupData">
@@ -17,6 +19,7 @@
 <script setup lang="ts">
 import type { IGameSetup } from '../../interfaces/IGameSetup'
 import manhattanDistance from '../../utils/manhattanDistance'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   index?: number
@@ -28,6 +31,8 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   showHeuristic: true
 })
+
+const { t } = useI18n()
 </script>
 
 <style lang="scss" scoped>
