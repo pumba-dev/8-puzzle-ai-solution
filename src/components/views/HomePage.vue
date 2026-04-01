@@ -28,25 +28,65 @@
     </a-layout-header>
 
     <a-layout-content class="layout__content">
+      <div class="content__about-action">
+        <a-button type="default" @click="aboutModalOpen = true">About the 8-Puzzle</a-button>
+      </div>
+
+      <a-modal
+        :footer="null"
+        :open="aboutModalOpen"
+        :width="700"
+        @cancel="aboutModalOpen = false"
+        centered
+        title="About the 8-Puzzle"
+      >
+        <section class="about-modal__content">
+          <p>
+            The 8-puzzle is a sliding-tile game played on a 3x3 board. Eight tiles are numbered from
+            1 to 8, and one position is empty. A state is solved when the board matches the goal
+            configuration.
+          </p>
+          <p>
+            In this app, the empty position is represented by 0 in the setup board. Every move
+            slides one adjacent tile into the empty space, generating a new state that algorithms
+            can explore.
+          </p>
+
+          <div class="about-modal__goal-state">
+            <div class="goal-state__text">
+              <h3>Goal State</h3>
+              <span>The search ends when this arrangement is reached.</span>
+            </div>
+            <GameStateBoard :gameSetupData="goalStateTemplate" :showHeuristic="false" />
+          </div>
+
+          <ul class="about-modal__rules">
+            <li>
+              Only legal moves are allowed: up, down, left, and right relative to the empty tile.
+            </li>
+            <li>
+              Each algorithm explores the state space differently, balancing speed and memory usage.
+            </li>
+            <li>
+              Heuristic-based methods in this project use Manhattan Distance to guide the search.
+            </li>
+          </ul>
+        </section>
+      </a-modal>
+
       <section class="content__game-container">
         <div class="game-container__header">
           <h2>Game Setup</h2>
 
           <a-tooltip
-            title="Enter the initial 8-puzzle configuration and select the algorithm you want to use for solving. The empty spot is represented by the number 0."
+            title="Click each tile in the board to choose values from 0 to 8. Value 0 represents the empty spot."
           >
             <img src="@/assets/info-icon.svg" />
           </a-tooltip>
         </div>
 
-        <div class="game-container__setup-grid">
-          <a-input
-            :key="index"
-            :controls="false"
-            v-for="index in 9"
-            v-model:value="gameSetupData[index - 1]"
-          >
-          </a-input>
+        <div class="game-container__setup-board">
+          <GameSetupBoardInput v-model="gameSetupData" />
         </div>
 
         <div class="game-container__algorithms">
@@ -133,7 +173,7 @@
             <GameStateBoard
               showIndex
               :key="index"
-              :index="index"
+              :index="Number(index)"
               :gameSetupData="data"
               class="result__grid-item"
               v-for="(data, index) in resultData.path"
@@ -176,7 +216,7 @@
             <TransitionGroup name="gamestate-change">
               <GameStateBoard
                 :key="index"
-                :index="index"
+                :index="Number(index)"
                 :gameSetupData="data"
                 class="result__grid-item"
                 v-for="(data, index) in resultData.stepPath"
@@ -195,6 +235,7 @@
 
 <script setup lang="ts">
 import GameStateBoard from '@/components/shared/GameStateBoard.vue'
+import GameSetupBoardInput from '@/components/shared/GameSetupBoardInput.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
 import { reactive, ref } from 'vue'
@@ -203,6 +244,7 @@ import { MenuOutlined } from '@ant-design/icons-vue'
 import type { IGameSetup } from '@/interfaces/IGameSetup'
 import type IAlgorithmClass from '@/interfaces/IAlgorithmClass'
 
+import goalStateTemplate from '@/assets/goalStateTemplate'
 import manhattanDistance from '@/utils/manhattanDistance'
 import BreadthFirstSearch from '@/utils/BreadthFirstSearch'
 import DepthFirstSearch from '@/utils/DepthFirstSearch'
@@ -210,6 +252,7 @@ import GreedyBestFirstSearch from '@/utils/GreedyBestFirstSearch'
 import AStarSearch from '@/utils/AStarSearch'
 
 const gameMode = ref<'step' | 'result'>('result')
+const aboutModalOpen = ref(false)
 const gameSetupData = ref<IGameSetup>(Array(9).fill(''))
 const algorithmSetup = ref<'bfs' | 'dfs' | 'gs' | 'a*'>('bfs')
 const selectedAlgorithm = ref<IAlgorithmClass | null>(null)
@@ -490,9 +533,73 @@ function sleep(ms: number) {
 
     display: flex;
     flex-direction: column;
+    gap: 28px;
+
+    .content__about-action {
+      width: min(700px, 100%);
+      margin: 0 auto;
+      display: flex;
+      justify-content: flex-end;
+
+      @media (max-width: 425px) {
+        justify-content: center;
+      }
+    }
+
+    .about-modal__content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      p {
+        line-height: 1.5;
+      }
+
+      .about-modal__goal-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        border: 1px dashed #b7b7b7;
+        border-radius: 10px;
+        padding: 14px;
+
+        .goal-state__text {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+
+          h3 {
+            margin: 0;
+            text-align: center;
+          }
+
+          span {
+            text-align: center;
+            line-height: 1.4;
+          }
+        }
+
+        @media (min-width: 768px) {
+          flex-direction: row;
+        }
+      }
+
+      .about-modal__rules {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        line-height: 1.4;
+        padding-left: 18px;
+        list-style: disc;
+      }
+    }
 
     .content__game-container {
       margin: 0 auto;
+      width: min(700px, 100%);
 
       display: flex;
       flex-direction: column;
@@ -519,12 +626,12 @@ function sleep(ms: number) {
         }
       }
 
-      .game-container__setup-grid {
-        max-width: 300px;
+      .game-container__setup-board {
+        width: 100%;
 
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .game-container__algorithms {

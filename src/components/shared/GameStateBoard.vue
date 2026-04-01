@@ -1,6 +1,6 @@
 <template>
   <div class="game-state-board">
-    <span>{{ `h = ${manhattanDistance(gameSetupData)}` }}</span>
+    <span v-if="showHeuristic">{{ `h = ${manhattanDistance(gameSetupData)}` }}</span>
 
     <div class="gamestate-board">
       <template :key="index" v-for="(piece, index) in gameSetupData">
@@ -21,10 +21,13 @@ import manhattanDistance from '../../utils/manhattanDistance'
 interface Props {
   index?: number
   showIndex?: boolean
+  showHeuristic?: boolean
   gameSetupData: IGameSetup
 }
 
-defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  showHeuristic: true
+})
 </script>
 
 <style lang="scss" scoped>
