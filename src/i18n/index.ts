@@ -109,7 +109,7 @@ const messages = {
   },
   'pt-BR': {
     app: {
-      title: 'Jogo 8-Puzzle com IA',
+      title: 'Jogo dos 8 com IA',
       menu: {
         contact: 'Contato',
         documentation: 'Documentacao',
@@ -120,7 +120,7 @@ const messages = {
         esES: 'Espanhol (Espanha)',
         enEU: 'Ingles (Europa)'
       },
-      footer: 'Jogo 8-Puzzle com IA © 2023 Criado por Pumba Developer'
+      footer: 'Jogo dos 8 com IA © 2023 Criado por Pumba Developer'
     },
     about: {
       title: 'Sobre o 8-Puzzle',
@@ -212,7 +212,7 @@ const messages = {
   },
   'es-ES': {
     app: {
-      title: 'Juego 8-Puzzle con IA',
+      title: 'Juego de los 8 con IA',
       menu: {
         contact: 'Contacto',
         documentation: 'Documentacion',
@@ -223,7 +223,7 @@ const messages = {
         esES: 'Espanol (Espana)',
         enEU: 'Ingles (Europa)'
       },
-      footer: 'Juego 8-Puzzle con IA © 2023 Creado por Pumba Developer'
+      footer: 'Juego de los 8 con IA © 2023 Creado por Pumba Developer'
     },
     about: {
       title: 'Sobre el 8-Puzzle',

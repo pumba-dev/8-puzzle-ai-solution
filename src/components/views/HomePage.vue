@@ -245,7 +245,7 @@ import GameStateBoard from '@/components/shared/GameStateBoard.vue'
 import GameSetupBoardInput from '@/components/shared/GameSetupBoardInput.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watchEffect } from 'vue'
 import { MenuOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
@@ -317,6 +317,15 @@ const algorithmOptions = computed(() => [
     explanation: t('algorithms.aStar.explanation')
   }
 ])
+
+watchEffect(() => {
+  if (typeof document === 'undefined') {
+    return
+  }
+
+  document.title = t('app.title')
+  document.documentElement.lang = locale.value
+})
 
 function resetResult() {
   gameMode.value = 'result'
