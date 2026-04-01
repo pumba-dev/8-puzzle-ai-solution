@@ -240,6 +240,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
 import { reactive, ref } from 'vue'
 import { MenuOutlined } from '@ant-design/icons-vue'
+import { message } from 'ant-design-vue'
 
 import type { IGameSetup } from '@/interfaces/IGameSetup'
 import type IAlgorithmClass from '@/interfaces/IAlgorithmClass'
@@ -424,7 +425,7 @@ function checkHValue() {
   if (!gameSetupIsValid()) {
     return
   }
-  alert(`h-value: ${manhattanDistance(gameSetupData.value)}`)
+  message.info(`h-value: ${manhattanDistance(gameSetupData.value)}`)
 }
 
 // Verificar se o array possui apenas números de 0 a 8 sem repetição
@@ -438,12 +439,12 @@ function gameSetupIsValid() {
   )
 
   if (isRepeated || isInvalid) {
-    alert('Please, insert a valid game setup.')
+    message.error('Please, insert a valid game setup.')
     return false
   }
 
   if (!isSolvable(gameSetupData.value)) {
-    alert('This setup is not solvable. Please, insert a solvable game setup.')
+    message.error('This setup is not solvable. Please, insert a solvable game setup.')
     return false
   }
 
