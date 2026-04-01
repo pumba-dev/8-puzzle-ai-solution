@@ -246,6 +246,7 @@ import type IAlgorithmClass from '@/interfaces/IAlgorithmClass'
 
 import goalStateTemplate from '@/assets/goalStateTemplate'
 import manhattanDistance from '@/utils/manhattanDistance'
+import isSolvable from '@/utils/isSolvable'
 import BreadthFirstSearch from '@/utils/BreadthFirstSearch'
 import DepthFirstSearch from '@/utils/DepthFirstSearch'
 import GreedyBestFirstSearch from '@/utils/GreedyBestFirstSearch'
@@ -308,8 +309,26 @@ function resetResult() {
 function genRandomGameSetup() {
   resetResult()
 
-  const randomArray = Array.from({ length: 9 }, (_, index) => index).sort(() => Math.random() - 0.5)
-  gameSetupData.value = randomArray.map((value) => value.toString()) as IGameSetup
+  let randomSetup = createShuffledSetup()
+
+  while (!isSolvable(randomSetup)) {
+    randomSetup = createShuffledSetup()
+  }
+
+  gameSetupData.value = randomSetup
+}
+
+function createShuffledSetup() {
+  const randomSetup = ['0', '1', '2', '3', '4', '5', '6', '7', '8']
+
+  for (let index = randomSetup.length - 1; index > 0; index--) {
+    const randomIndex = Math.floor(Math.random() * (index + 1))
+    const currentValue = randomSetup[index]
+    randomSetup[index] = randomSetup[randomIndex]
+    randomSetup[randomIndex] = currentValue
+  }
+
+  return randomSetup as IGameSetup
 }
 
 async function handleStepGame() {
@@ -410,7 +429,7 @@ function checkHValue() {
 
 // Verificar se o array possui apenas números de 0 a 8 sem repetição
 function gameSetupIsValid() {
-  const gameSetupDataNumbers = gameSetupData.value.map((value) => parseInt(value))
+  const gameSetupDataNumbers = gameSetupData.value.map((value) => parseInt(value, 10))
 
   const isInvalid = gameSetupDataNumbers.some((value) => isNaN(value) || value < 0 || value > 8)
 
@@ -420,6 +439,11 @@ function gameSetupIsValid() {
 
   if (isRepeated || isInvalid) {
     alert('Please, insert a valid game setup.')
+    return false
+  }
+
+  if (!isSolvable(gameSetupData.value)) {
+    alert('This setup is not solvable. Please, insert a solvable game setup.')
     return false
   }
 
