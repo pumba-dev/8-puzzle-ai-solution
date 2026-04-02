@@ -179,6 +179,9 @@
           >
             {{ t('actions.resumeSimulation') }}
           </a-button>
+          <a-button danger :disabled="isCancelling" @click="handleCancelSimulation">
+            {{ isCancelling ? t('simulation.cancelling') : t('actions.cancelSimulation') }}
+          </a-button>
         </div>
 
         <StateBorderStream
@@ -1104,9 +1107,12 @@ onBeforeUnmount(() => {
         width: min(980px, 100%);
         display: flex;
         justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
 
         @media (max-width: 640px) {
           justify-content: center;
+          flex-direction: column;
           width: 100%;
 
           :deep(button) {
