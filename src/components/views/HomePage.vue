@@ -168,11 +168,7 @@
         />
 
         <div class="simulation-container__actions">
-          <a-button
-            v-show="!isPaused"
-            :disabled="isCancelling"
-            @click="handlePauseSimulation"
-          >
+          <a-button v-show="!isPaused" :disabled="isCancelling" @click="handlePauseSimulation">
             {{ t('actions.pauseSimulation') }}
           </a-button>
           <a-button
