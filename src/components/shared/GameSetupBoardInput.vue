@@ -20,7 +20,7 @@
               type="button"
               v-for="option in tileOptions"
             >
-              {{ option === '0' ? t('boardInput.emptyTile') : option }}
+              {{ option }}
             </button>
 
             <button
@@ -120,6 +120,11 @@ function handleClear(index: number) {
   align-items: center;
   gap: 12px;
 
+  :deep(.ant-popover-inner) {
+    border-radius: 10px;
+    padding: 8px !important;
+  }
+
   .setup-board__grid {
     background: #6d3a3a;
     border: 2px solid #402121;
@@ -195,6 +200,11 @@ function handleClear(index: number) {
     line-height: 1.4;
     color: #595959;
     font-size: 13px;
+
+    @media (max-width: 425px) {
+      max-width: 240px;
+      font-size: 12px;
+    }
   }
 }
 
@@ -203,15 +213,23 @@ function handleClear(index: number) {
 
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 34px;
   gap: 8px;
 
   .setup-board__option {
     border: 1px solid #d9d9d9;
     border-radius: 6px;
-    padding: 6px;
+    height: 100%;
+    padding: 0;
     background: #fff;
     color: #262626;
     font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     &:hover:not(:disabled) {
       cursor: pointer;
@@ -235,6 +253,21 @@ function handleClear(index: number) {
     &.--clear {
       grid-column: 1 / -1;
       font-weight: 500;
+      min-height: 34px;
+    }
+  }
+
+  @media (max-width: 425px) {
+    width: 182px;
+    grid-auto-rows: 32px;
+    gap: 6px;
+
+    .setup-board__option {
+      font-size: 12px;
+
+      &.--clear {
+        min-height: 32px;
+      }
     }
   }
 }

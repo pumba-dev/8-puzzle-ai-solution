@@ -10,7 +10,9 @@ const messages = {
       menu: {
         contact: 'Contact',
         documentation: 'Documentation',
-        about: 'About the 8-Puzzle'
+        about: 'About the 8-Puzzle',
+        play: 'Play Mode',
+        simulation: 'Simulation Mode'
       },
       language: {
         ptBR: 'Portuguese (Brazil)',
@@ -36,6 +38,49 @@ const messages = {
       title: 'Game Setup',
       tooltip:
         'Fill the 3x3 board with values from 0 to 8, without repeating numbers. Use 0 as the empty tile and click Run Simulation when ready.'
+    },
+    play: {
+      title: 'Play 8-Puzzle',
+      subtitle: 'Move the tiles until you reach the goal state.',
+      currentDifficulty: 'Difficulty: {difficulty}',
+      notAvailable: 'N/A',
+      optimalLoading: 'Calculating...',
+      hintMessage: 'Hint: move tile {tile}.',
+      difficulty: {
+        easy: 'Easy',
+        medium: 'Medium',
+        hard: 'Hard'
+      },
+      actions: {
+        hint: 'Hint',
+        restart: 'Restart',
+        generateInitial: 'Generate Initial State',
+        newGame: 'New Game',
+        newChallenge: 'New Challenge'
+      },
+      stats: {
+        moves: 'Moves',
+        time: 'Time',
+        mpm: 'MPM',
+        hintsUsed: 'Hints Used',
+        bestTime: 'Best Time',
+        optimalMoves: 'Optimal Moves',
+        efficiency: 'Efficiency'
+      },
+      status: {
+        idle: 'Ready to play. Make your first move.',
+        playing: 'Game in progress.',
+        won: 'Puzzle solved.'
+      },
+      board: {
+        emptyTileAriaLabel: 'Empty tile',
+        tileAriaLabel: 'Tile {tile}'
+      },
+      victory: {
+        title: 'You Win!',
+        subtitle: 'Puzzle solved successfully.',
+        toast: 'Puzzle solved!'
+      }
     },
     algorithms: {
       title: 'Search Algorithms',
@@ -148,7 +193,9 @@ const messages = {
       menu: {
         contact: 'Contato',
         documentation: 'Documentacao',
-        about: 'Sobre o 8-Puzzle'
+        about: 'Sobre o 8-Puzzle',
+        play: 'Modo Jogar',
+        simulation: 'Modo Simulacao'
       },
       language: {
         ptBR: 'Portugues (Brasil)',
@@ -176,6 +223,49 @@ const messages = {
       title: 'Configuracao do Jogo',
       tooltip:
         'Preencha o tabuleiro 3x3 com valores de 0 a 8, sem repetir numeros. Use 0 como espaco vazio e clique em Executar Simulacao quando terminar.'
+    },
+    play: {
+      title: 'Modo Jogar 8-Puzzle',
+      subtitle: 'Mova as pecas ate chegar ao estado objetivo.',
+      currentDifficulty: 'Dificuldade: {difficulty}',
+      notAvailable: 'N/D',
+      optimalLoading: 'Calculando...',
+      hintMessage: 'Dica: mova a peca {tile}.',
+      difficulty: {
+        easy: 'Facil',
+        medium: 'Medio',
+        hard: 'Dificil'
+      },
+      actions: {
+        hint: 'Dica',
+        restart: 'Reiniciar',
+        generateInitial: 'Gerar Inicial',
+        newGame: 'Novo Jogo',
+        newChallenge: 'Novo Desafio'
+      },
+      stats: {
+        moves: 'Movimentos',
+        time: 'Tempo',
+        mpm: 'MPM',
+        hintsUsed: 'Dicas Usadas',
+        bestTime: 'Melhor Tempo',
+        optimalMoves: 'Movimentos Otimos',
+        efficiency: 'Eficiencia'
+      },
+      status: {
+        idle: 'Pronto para jogar. Faca seu primeiro movimento.',
+        playing: 'Partida em andamento.',
+        won: 'Puzzle resolvido.'
+      },
+      board: {
+        emptyTileAriaLabel: 'Casa vazia',
+        tileAriaLabel: 'Peca {tile}'
+      },
+      victory: {
+        title: 'Voce Venceu!',
+        subtitle: 'Puzzle resolvido com sucesso.',
+        toast: 'Puzzle resolvido!'
+      }
     },
     algorithms: {
       title: 'Algoritmos de Busca',
@@ -289,7 +379,9 @@ const messages = {
       menu: {
         contact: 'Contacto',
         documentation: 'Documentacion',
-        about: 'Sobre el 8-Puzzle'
+        about: 'Sobre el 8-Puzzle',
+        play: 'Modo Juego',
+        simulation: 'Modo Simulacion'
       },
       language: {
         ptBR: 'Portugues (Brasil)',
@@ -317,6 +409,49 @@ const messages = {
       title: 'Configuracion del Juego',
       tooltip:
         'Completa el tablero 3x3 con valores de 0 a 8 sin repetir numeros. Usa 0 como espacio vacio y pulsa Ejecutar Simulacion al terminar.'
+    },
+    play: {
+      title: 'Modo Juego 8-Puzzle',
+      subtitle: 'Mueve las fichas hasta llegar al estado objetivo.',
+      currentDifficulty: 'Dificultad: {difficulty}',
+      notAvailable: 'N/D',
+      optimalLoading: 'Calculando...',
+      hintMessage: 'Pista: mueve la ficha {tile}.',
+      difficulty: {
+        easy: 'Facil',
+        medium: 'Medio',
+        hard: 'Dificil'
+      },
+      actions: {
+        hint: 'Pista',
+        restart: 'Reiniciar',
+        generateInitial: 'Generar Inicial',
+        newGame: 'Nuevo Juego',
+        newChallenge: 'Nuevo Desafio'
+      },
+      stats: {
+        moves: 'Movimientos',
+        time: 'Tiempo',
+        mpm: 'MPM',
+        hintsUsed: 'Pistas Usadas',
+        bestTime: 'Mejor Tiempo',
+        optimalMoves: 'Movimientos Optimos',
+        efficiency: 'Eficiencia'
+      },
+      status: {
+        idle: 'Listo para jugar. Haz tu primer movimiento.',
+        playing: 'Partida en progreso.',
+        won: 'Puzzle resuelto.'
+      },
+      board: {
+        emptyTileAriaLabel: 'Casilla vacia',
+        tileAriaLabel: 'Ficha {tile}'
+      },
+      victory: {
+        title: 'Has Ganado!',
+        subtitle: 'Puzzle resuelto con exito.',
+        toast: 'Puzzle resuelto!'
+      }
     },
     algorithms: {
       title: 'Algoritmos de Busqueda',

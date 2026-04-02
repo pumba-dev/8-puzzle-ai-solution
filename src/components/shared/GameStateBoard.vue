@@ -99,4 +99,43 @@ const { t } = useI18n()
     }
   }
 }
+
+@media (max-width: 425px) {
+  .game-state-board {
+    .gamestate-board {
+      &.--compact {
+        .board__peace {
+          width: 22px;
+          height: 22px;
+
+          span {
+            font-size: 15px;
+          }
+        }
+      }
+
+      &.--regular {
+        .board__peace {
+          width: 30px;
+          height: 30px;
+
+          span {
+            font-size: 20px;
+          }
+        }
+      }
+
+      &.--large {
+        .board__peace {
+          width: 42px;
+          height: 42px;
+
+          span {
+            font-size: 24px;
+          }
+        }
+      }
+    }
+  }
+}
 </style>

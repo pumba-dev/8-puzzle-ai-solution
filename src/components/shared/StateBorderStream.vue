@@ -31,11 +31,16 @@
           <div class="expansion__flow">
             <div class="flow__group">
               <span class="flow__label">{{ t('simulation.liveBorderFromState') }}</span>
-              <GameStateBoard
-                :gameSetupData="expansion.parentState"
-                :showHeuristic="false"
-                size="regular"
-              />
+              <div class="stream-board --regular">
+                <div
+                  :key="`parent-${expansion.tick}-${tileIndex}-${tile}`"
+                  class="stream-board__tile"
+                  :class="{ '--empty': tile === '0' || tile === '' }"
+                  v-for="(tile, tileIndex) in expansion.parentState"
+                >
+                  <span>{{ tile === '0' || tile === '' ? '' : tile }}</span>
+                </div>
+              </div>
             </div>
 
             <span class="flow__arrow">→</span>
@@ -44,13 +49,20 @@
               <span class="flow__label">{{ t('simulation.liveBorderOpenedStates') }}</span>
 
               <div class="flow__children-grid" v-if="expansion.openedStates.length">
-                <GameStateBoard
-                  :gameSetupData="openedState"
+                <div
                   :key="`${expansion.tick}-${openedState.join('')}-${childIndex}`"
-                  :showHeuristic="false"
-                  size="compact"
+                  class="stream-board --compact"
                   v-for="(openedState, childIndex) in expansion.openedStates"
-                />
+                >
+                  <div
+                    :key="`${expansion.tick}-${childIndex}-${tileIndex}-${tile}`"
+                    class="stream-board__tile"
+                    :class="{ '--empty': tile === '0' || tile === '' }"
+                    v-for="(tile, tileIndex) in openedState"
+                  >
+                    <span>{{ tile === '0' || tile === '' ? '' : tile }}</span>
+                  </div>
+                </div>
               </div>
 
               <span class="flow__no-children" v-else>
@@ -72,7 +84,6 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import GameStateBoard from '@/components/shared/GameStateBoard.vue'
 import type { WorkerStateExpansion } from '@/workers/workerProtocol'
 
 interface Props {
@@ -217,6 +228,58 @@ const { t } = useI18n()
           }
         }
 
+        .stream-board {
+          background: #6d3a3a;
+          border: 2px solid #402121;
+          border-radius: 14px;
+          padding: 8px;
+
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 4px;
+
+          .stream-board__tile {
+            border: 1px solid #2e2e2e;
+            background: #f3f3f3;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            &.--empty {
+              background: #9e7a4b;
+            }
+
+            span {
+              font-weight: 600;
+              line-height: 1;
+              color: #1a1a1a;
+            }
+          }
+
+          &.--regular {
+            .stream-board__tile {
+              width: 40px;
+              height: 40px;
+
+              span {
+                font-size: 22px;
+              }
+            }
+          }
+
+          &.--compact {
+            .stream-board__tile {
+              width: 30px;
+              height: 30px;
+
+              span {
+                font-size: 18px;
+              }
+            }
+          }
+        }
+
         .flow__arrow {
           font-size: 20px;
           color: #2a6fb6;
@@ -286,6 +349,84 @@ const { t } = useI18n()
 
         span {
           font-size: 11px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .state-stream {
+    padding: 10px;
+
+    .state-stream__header {
+      h3 {
+        font-size: 16px;
+      }
+
+      .state-stream__stats {
+        gap: 6px;
+
+        span {
+          font-size: 10px;
+          padding: 3px 6px;
+        }
+      }
+    }
+
+    .state-stream__content {
+      padding: 8px;
+      min-height: 140px;
+
+      .state-stream__expansion {
+        padding: 8px;
+
+        .expansion__flow {
+          gap: 6px;
+
+          .stream-board {
+            padding: 6px;
+
+            &.--regular {
+              .stream-board__tile {
+                width: 34px;
+                height: 34px;
+
+                span {
+                  font-size: 19px;
+                }
+              }
+            }
+
+            &.--compact {
+              .stream-board__tile {
+                width: 26px;
+                height: 26px;
+
+                span {
+                  font-size: 15px;
+                }
+              }
+            }
+          }
+
+          .flow__group {
+            gap: 5px;
+
+            .flow__label {
+              font-size: 11px;
+            }
+
+            &.--children {
+              .flow__children-grid {
+                gap: 6px;
+              }
+            }
+          }
+
+          .flow__arrow {
+            font-size: 16px;
+          }
         }
       }
     }

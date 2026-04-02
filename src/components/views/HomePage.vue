@@ -7,24 +7,17 @@
       </div>
 
       <div class="header__menu">
-        <a-select v-model:value="locale" class="menu__language-select" size="small">
-          <a-select-option
-            :key="localeOption.value"
-            :value="localeOption.value"
-            v-for="localeOption in localeOptions"
-          >
-            {{ localeOption.label }}
-          </a-select-option>
-        </a-select>
-
-        <a-button @click="handleOpenContact" class="menu__button">{{
-          t('app.menu.contact')
+        <a-button @click="aboutModalOpen = true" class="menu__button">{{
+          t('app.menu.about')
         }}</a-button>
         <a-button @click="handleOpenDocumentation" class="menu__button">{{
           t('app.menu.documentation')
         }}</a-button>
-        <a-button @click="aboutModalOpen = true" class="menu__button">{{
-          t('app.menu.about')
+        <a-button @click="handleOpenContact" class="menu__button">{{
+          t('app.menu.contact')
+        }}</a-button>
+        <a-button @click="handleOpenPlayModule" class="menu__button">{{
+          t('app.menu.play')
         }}</a-button>
 
         <a-dropdown class="menu__dropdown">
@@ -35,15 +28,28 @@
               <a-menu-item @click="aboutModalOpen = true">
                 <span>{{ t('app.menu.about') }}</span>
               </a-menu-item>
+              <a-menu-item @click="handleOpenDocumentation">
+                <span>{{ t('app.menu.documentation') }}</span>
+              </a-menu-item>
               <a-menu-item @click="handleOpenContact">
                 <span>{{ t('app.menu.contact') }}</span>
               </a-menu-item>
-              <a-menu-item @click="handleOpenDocumentation">
-                <span>{{ t('app.menu.documentation') }}</span>
+              <a-menu-item @click="handleOpenPlayModule">
+                <span>{{ t('app.menu.play') }}</span>
               </a-menu-item>
             </a-menu>
           </template>
         </a-dropdown>
+
+        <a-select v-model:value="locale" class="menu__language-select" size="small">
+          <a-select-option
+            :key="localeOption.value"
+            :value="localeOption.value"
+            v-for="localeOption in localeOptions"
+          >
+            {{ localeOption.label }}
+          </a-select-option>
+        </a-select>
       </div>
     </a-layout-header>
 
@@ -51,7 +57,7 @@
       <a-modal
         :footer="null"
         :open="aboutModalOpen"
-        :width="700"
+        :width="aboutModalWidth"
         @cancel="aboutModalOpen = false"
         centered
         :title="t('about.title')"
@@ -161,6 +167,24 @@
           :isPaused="isPaused"
         />
 
+        <div class="simulation-container__actions">
+          <a-button
+            v-show="!isPaused"
+            :disabled="isCancelling"
+            @click="handlePauseSimulation"
+          >
+            {{ t('actions.pauseSimulation') }}
+          </a-button>
+          <a-button
+            type="primary"
+            v-show="isPaused"
+            :disabled="isCancelling"
+            @click="handleResumeSimulation"
+          >
+            {{ t('actions.resumeSimulation') }}
+          </a-button>
+        </div>
+
         <StateBorderStream
           :expansions="liveBorderExpansions"
           :generatedNodes="resultData.generatedNodes"
@@ -240,7 +264,16 @@
                 <span class="route-step__index">{{
                   index === 0 ? t('solution.initialStateLabel') : index
                 }}</span>
-                <GameStateBoard :gameSetupData="data" :showHeuristic="false" size="large" />
+                <div class="route-step__mini-board">
+                  <div
+                    :key="`route-tile-${index}-${tileIndex}-${tile}`"
+                    class="route-step__mini-tile"
+                    :class="{ '--empty': tile === '0' || tile === '' }"
+                    v-for="(tile, tileIndex) in data"
+                  >
+                    <span>{{ tile === '0' || tile === '' ? '' : tile }}</span>
+                  </div>
+                </div>
 
                 <span
                   v-if="getRouteConnectorDirection(index, resultData.path.length) !== 'none'"
@@ -274,6 +307,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from
 import { MenuOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 import type { IGameSetup } from '@/interfaces/IGameSetup'
 import type { AppLocale } from '@/i18n'
@@ -289,6 +323,7 @@ import manhattanDistance from '@/utils/manhattanDistance'
 import isSolvable from '@/utils/isSolvable'
 
 const { t, locale } = useI18n()
+const router = useRouter()
 
 const aboutModalOpen = ref(false)
 const gameSetupData = ref<IGameSetup>(Array(9).fill(''))
@@ -302,6 +337,7 @@ const isCancelling = ref(false)
 const isPaused = ref(false)
 const liveBorderExpansions = ref<WorkerStateExpansion[]>([])
 const routeColumns = ref(4)
+const viewportWidth = ref(1200)
 
 const resultData = reactive({
   show: false,
@@ -353,6 +389,17 @@ const algorithmOptions = computed(() => [
 
 const showResult = computed(() => resultData.show && resultData.path.length > 0)
 const showSimulationScreen = computed(() => resultData.loading || showResult.value)
+const aboutModalWidth = computed(() => {
+  if (viewportWidth.value <= 480) {
+    return 'calc(100vw - 20px)'
+  }
+
+  if (viewportWidth.value <= 768) {
+    return 'calc(100vw - 40px)'
+  }
+
+  return 700
+})
 
 watchEffect(() => {
   if (typeof document === 'undefined') {
@@ -618,6 +665,10 @@ function handleOpenContact() {
   window.open('https://linktr.ee/pumbadev', '_blank')
 }
 
+function handleOpenPlayModule() {
+  router.push('/play')
+}
+
 function handleOpenWebsite() {
   window.open('https://pumbadev.com', '_blank')
 }
@@ -628,21 +679,24 @@ function handleNewSimulation() {
 
 function updateRouteColumns() {
   if (typeof window === 'undefined') {
+    viewportWidth.value = 1200
     routeColumns.value = 4
     return
   }
 
-  if (window.innerWidth <= 560) {
+  viewportWidth.value = window.innerWidth
+
+  if (viewportWidth.value <= 560) {
     routeColumns.value = 1
     return
   }
 
-  if (window.innerWidth <= 860) {
+  if (viewportWidth.value <= 860) {
     routeColumns.value = 2
     return
   }
 
-  if (window.innerWidth <= 1080) {
+  if (viewportWidth.value <= 1080) {
     routeColumns.value = 3
     return
   }
@@ -693,27 +747,45 @@ onBeforeUnmount(() => {
   .layout__header {
     display: flex;
     flex-direction: row;
+    align-items: center;
     justify-content: space-between;
+    gap: 10px;
+    min-height: 74px;
+    height: auto;
+    padding: 10px clamp(10px, 2vw, 26px);
+
+    position: sticky;
+    top: 0;
+    z-index: 30;
+
+    background: linear-gradient(120deg, #0f2a4b 0%, #184273 62%, #0d5ea9 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 10px 24px rgba(8, 25, 46, 0.2);
 
     .header__title {
       display: flex;
       flex-direction: row;
       gap: 10px;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
 
       @media (min-width: 768px) {
-        gap: 20px;
+        gap: 14px;
       }
 
       img {
-        width: 20px;
-        height: 20px;
-        margin-bottom: 8px;
+        width: 24px;
+        height: 24px;
+        margin-bottom: 0;
+        padding: 6px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.36);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
 
         @media (min-width: 768px) {
-          width: 25px;
-          height: 25px;
+          width: 26px;
+          height: 26px;
         }
 
         @media (min-width: 1024px) {
@@ -723,16 +795,31 @@ onBeforeUnmount(() => {
       }
 
       h1 {
+        margin: 0;
         color: white;
+        line-height: 1.1;
+        letter-spacing: 0.2px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 
-        font-size: 14px;
+        font-size: 15px;
+        font-weight: 700;
 
         @media (min-width: 768px) {
-          font-size: 16px;
+          font-size: 17px;
         }
 
         @media (min-width: 1024px) {
-          font-size: 18px;
+          font-size: 19px;
+        }
+      }
+
+      @media (max-width: 560px) {
+        width: 100%;
+        justify-content: center;
+
+        h1 {
+          font-size: 14px;
+          text-align: center;
         }
       }
     }
@@ -741,35 +828,89 @@ onBeforeUnmount(() => {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 20px;
+      gap: 8px;
+      padding: 0;
+      border: none;
+      background: transparent;
 
       .menu__language-select {
-        width: 170px;
+        width: 182px;
+
+        :deep(.ant-select-selector) {
+          border-radius: 999px !important;
+          border-color: rgba(255, 255, 255, 0.22) !important;
+          background: rgba(255, 255, 255, 0.14) !important;
+          min-height: 34px;
+          display: flex;
+          align-items: center;
+        }
+
+        :deep(.ant-select-selection-item) {
+          color: #fff;
+          font-weight: 600;
+        }
+
+        :deep(.ant-select-arrow) {
+          color: #fff;
+        }
       }
 
       .menu__button {
         display: block;
+        border: none;
+        color: #fff;
+        border-radius: 999px;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.16);
+        transition: all 0.2s ease;
+
+        &:hover {
+          color: #fff;
+          background: rgba(255, 255, 255, 0.28);
+          transform: translateY(-1px);
+        }
       }
 
       .menu__dropdown {
         display: none;
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.16);
       }
 
-      @media (max-width: 425px) {
+      @media (max-width: 900px) {
         gap: 12px;
-
-        .menu__language-select {
-          width: 130px;
-        }
 
         .menu__button {
           display: none;
         }
 
         .menu__dropdown {
-          display: block;
+          display: flex;
         }
       }
+
+      @media (max-width: 560px) {
+        width: 100%;
+        gap: 6px;
+        padding: 4px;
+        justify-content: center;
+
+        .menu__language-select {
+          width: min(160px, 64vw);
+        }
+      }
+    }
+
+    @media (max-width: 560px) {
+      gap: 8px;
+      padding: 8px 10px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
   }
 
@@ -781,6 +922,16 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     gap: 28px;
+
+    @media (max-width: 768px) {
+      padding: 12px;
+      gap: 20px;
+    }
+
+    @media (max-width: 425px) {
+      padding: 10px;
+      gap: 16px;
+    }
 
     .about-modal__content {
       display: flex;
@@ -892,16 +1043,29 @@ onBeforeUnmount(() => {
 
         .algorithms__radio-group {
           display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 6px 14px;
 
-          @media (max-width: 425px) {
+          @media (max-width: 768px) {
             flex-direction: column;
+            align-items: flex-start;
+
+            :deep(.ant-radio-wrapper) {
+              margin-inline-end: 0;
+            }
           }
+
           .radio-group__options {
             display: flex;
             flex-direction: row;
             gap: 5px;
             align-items: center;
             justify-content: center;
+
+            span {
+              line-height: 1.3;
+            }
 
             img {
               width: 17px;
@@ -918,7 +1082,7 @@ onBeforeUnmount(() => {
         justify-content: center;
         gap: 20px;
 
-        @media (max-width: 425px) {
+        @media (max-width: 640px) {
           gap: 10px;
           flex-direction: column;
           width: 100%;
@@ -939,6 +1103,21 @@ onBeforeUnmount(() => {
       gap: 20px;
       align-items: center;
       justify-content: center;
+
+      .simulation-container__actions {
+        width: min(980px, 100%);
+        display: flex;
+        justify-content: flex-end;
+
+        @media (max-width: 640px) {
+          justify-content: center;
+          width: 100%;
+
+          :deep(button) {
+            width: 100%;
+          }
+        }
+      }
     }
 
     .content__result-panel {
@@ -968,6 +1147,7 @@ onBeforeUnmount(() => {
           margin: 4px 0 0;
           color: #355f8f;
           font-weight: 500;
+          line-height: 1.35;
         }
 
         img {
@@ -978,6 +1158,16 @@ onBeforeUnmount(() => {
         @media (max-width: 620px) {
           flex-direction: column;
           align-items: flex-start;
+        }
+
+        @media (max-width: 480px) {
+          h3 {
+            font-size: 20px;
+          }
+
+          p {
+            font-size: 13px;
+          }
         }
       }
 
@@ -1090,6 +1280,37 @@ onBeforeUnmount(() => {
             }
           }
 
+          .route-step__mini-board {
+            background: #6d3a3a;
+            border: 2px solid #402121;
+            border-radius: 14px;
+            padding: 10px;
+
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+          }
+
+          .route-step__mini-tile {
+            width: 48px;
+            height: 48px;
+            border: 1px solid #2e2e2e;
+            background: #f3f3f3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            &.--empty {
+              background: #9e7a4b;
+            }
+
+            span {
+              font-size: 26px;
+              font-weight: 600;
+              line-height: 1;
+            }
+          }
+
           .route-step__index {
             min-width: 24px;
             height: 24px;
@@ -1140,6 +1361,23 @@ onBeforeUnmount(() => {
             .route-step {
               max-width: 260px;
               margin: 0 auto;
+            }
+          }
+        }
+
+        @media (max-width: 480px) {
+          .route-grid {
+            .route-step__mini-board {
+              padding: 8px;
+            }
+
+            .route-step__mini-tile {
+              width: 40px;
+              height: 40px;
+
+              span {
+                font-size: 22px;
+              }
             }
           }
         }

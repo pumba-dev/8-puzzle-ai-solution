@@ -156,6 +156,44 @@ const elapsedSeconds = computed(() => `${(props.elapsedMs / 1000).toFixed(1)}s`)
   }
 }
 
+@media (max-width: 480px) {
+  .loading-container {
+    gap: 12px;
+
+    .loading__board {
+      padding: 8px;
+
+      .loading__tile {
+        width: 40px;
+        height: 40px;
+
+        span {
+          font-size: 22px;
+        }
+      }
+    }
+
+    .loading__status {
+      h3 {
+        font-size: 18px;
+      }
+
+      p {
+        font-size: 13px;
+      }
+
+      .loading__metrics {
+        gap: 6px;
+
+        span {
+          font-size: 11px;
+          padding: 3px 7px;
+        }
+      }
+    }
+  }
+}
+
 @keyframes tile-shift {
   0%,
   100% {
