@@ -750,7 +750,7 @@ function updateBestTimeIfNeeded() {
 }
 
 function goToSimulation() {
-  router.push('/simulation')
+  router.push('/solver')
 }
 
 function handleOpenWebsite() {
