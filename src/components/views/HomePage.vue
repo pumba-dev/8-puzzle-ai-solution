@@ -23,12 +23,18 @@
         <a-button @click="handleOpenDocumentation" class="menu__button">{{
           t('app.menu.documentation')
         }}</a-button>
+        <a-button @click="aboutModalOpen = true" class="menu__button">{{
+          t('app.menu.about')
+        }}</a-button>
 
         <a-dropdown class="menu__dropdown">
           <MenuOutlined :style="{ color: '#fff', fontSize: '16px' }" />
 
           <template #overlay>
             <a-menu>
+              <a-menu-item @click="aboutModalOpen = true">
+                <span>{{ t('app.menu.about') }}</span>
+              </a-menu-item>
               <a-menu-item @click="handleOpenContact">
                 <span>{{ t('app.menu.contact') }}</span>
               </a-menu-item>
@@ -42,10 +48,6 @@
     </a-layout-header>
 
     <a-layout-content class="layout__content">
-      <div class="content__about-action">
-        <a-button type="default" @click="aboutModalOpen = true">{{ t('app.menu.about') }}</a-button>
-      </div>
-
       <a-modal
         :footer="null"
         :open="aboutModalOpen"
@@ -78,7 +80,7 @@
         </section>
       </a-modal>
 
-      <section class="content__game-container">
+      <section class="content__game-container" v-show="!showSimulationScreen">
         <div class="game-container__header">
           <h2>{{ t('setup.title') }}</h2>
 
@@ -112,126 +114,148 @@
           </a-radio-group>
         </div>
 
-        <div class="game-container__footer-buttons">
-          <a-button type="dashed" @click="genRandomGameSetup">{{
+        <div class="game-container__actions">
+          <a-button type="dashed" :disabled="resultData.loading" @click="genRandomGameSetup">{{
             t('actions.randomValues')
           }}</a-button>
-          <a-button type="dashed" @click="checkHValue">{{ t('actions.checkHValue') }}</a-button>
-          <a-button type="primary" @click="handleStartGame">{{ t('actions.startGame') }}</a-button>
-          <a-button type="primary" @click="handleStepGame">{{ t('actions.stepByStep') }}</a-button>
+          <a-button type="dashed" :disabled="resultData.loading" @click="checkHValue">{{
+            t('actions.checkHValue')
+          }}</a-button>
+          <a-button
+            type="primary"
+            :loading="resultData.loading && !isCancelling && !isPaused"
+            :disabled="resultData.loading"
+            @click="handleRunSimulation"
+          >
+            {{ t('actions.runSimulation') }}
+          </a-button>
+          <a-button
+            v-show="resultData.loading && !isPaused"
+            :disabled="isCancelling"
+            @click="handlePauseSimulation"
+          >
+            {{ t('actions.pauseSimulation') }}
+          </a-button>
+          <a-button
+            type="primary"
+            v-show="resultData.loading && isPaused"
+            :disabled="isCancelling"
+            @click="handleResumeSimulation"
+          >
+            {{ t('actions.resumeSimulation') }}
+          </a-button>
+          <a-button danger v-show="resultData.loading" @click="handleCancelSimulation">
+            {{ isCancelling ? t('simulation.cancelling') : t('actions.cancelSimulation') }}
+          </a-button>
         </div>
       </section>
 
-      <a-divider> </a-divider>
+      <a-divider v-show="!showSimulationScreen"> </a-divider>
 
-      <template v-if="gameMode == 'result'">
-        <LoadingSpinner v-if="resultData.loading"></LoadingSpinner>
-        <section v-else-if="resultData.show" class="content__result-container">
-          <div class="result__header">
+      <section class="content__simulation-container" v-show="resultData.loading">
+        <LoadingSpinner
+          :initialState="gameSetupData"
+          :generatedNodes="resultData.generatedNodes"
+          :openNodes="resultData.openNodes"
+          :elapsedMs="resultData.executionTime"
+          :isPaused="isPaused"
+        />
+
+        <StateBorderStream
+          :expansions="liveBorderExpansions"
+          :generatedNodes="resultData.generatedNodes"
+          :openNodes="resultData.openNodes"
+          :maxDepth="resultData.maxDepth"
+          :maxStateBorder="resultData.maxStateBorder"
+          :animationDurationMs="liveBorderAnimationDurationMs"
+        />
+      </section>
+
+      <section v-show="showResult" class="content__result-panel">
+        <div class="result-panel__actions">
+          <a-button type="primary" @click="handleNewSimulation">{{
+            t('actions.newSimulation')
+          }}</a-button>
+        </div>
+
+        <div class="result-panel__hero">
+          <div>
             <h3>{{ t('solution.title') }}</h3>
-            <a-tooltip>
-              <img src="@/assets/info-icon.svg" />
-              <template #title>
-                <div>
-                  <p>{{ t('stats.solutionNodes') }}: {{ t('stats.tooltip.solutionNodes') }}</p>
-                  <p>{{ t('stats.generatedNodes') }}: {{ t('stats.tooltip.generatedNodes') }}</p>
-                  <p>{{ t('stats.openNodes') }}: {{ t('stats.tooltip.openNodes') }}</p>
-                  <p>{{ t('stats.maxDepth') }}: {{ t('stats.tooltip.maxDepth') }}</p>
-                  <p>
-                    {{ t('stats.maxStatesBorderSize') }}:
-                    {{ t('stats.tooltip.maxStatesBorderSize') }}
-                  </p>
-                  <p>{{ t('stats.executionTime') }}: {{ t('stats.tooltip.executionTime') }}</p>
-                </div>
-              </template>
-            </a-tooltip>
+            <p>{{ t('solution.routeSummary', { steps: resultData.path.length }) }}</p>
           </div>
+          <a-tooltip>
+            <img src="@/assets/info-icon.svg" />
+            <template #title>
+              <div>
+                <p>{{ t('stats.solutionNodes') }}: {{ t('stats.tooltip.solutionNodes') }}</p>
+                <p>{{ t('stats.generatedNodes') }}: {{ t('stats.tooltip.generatedNodes') }}</p>
+                <p>{{ t('stats.openNodes') }}: {{ t('stats.tooltip.openNodes') }}</p>
+                <p>{{ t('stats.maxDepth') }}: {{ t('stats.tooltip.maxDepth') }}</p>
+                <p>
+                  {{ t('stats.maxStatesBorderSize') }}:
+                  {{ t('stats.tooltip.maxStatesBorderSize') }}
+                </p>
+                <p>{{ t('stats.executionTime') }}: {{ t('stats.tooltip.executionTime') }}</p>
+              </div>
+            </template>
+          </a-tooltip>
+        </div>
 
-          <div class="result__stats">
-            <span
-              >{{ t('stats.solutionNodes') }}: <br />
-              {{ resultData.path.length }}</span
-            >
-            <span
-              >{{ t('stats.generatedNodes') }}: <br />
-              {{ resultData.generatedNodes }}</span
-            >
-            <span
-              >{{ t('stats.openNodes') }}: <br />
-              {{ resultData.openNodes }}</span
-            >
-            <span
-              >{{ t('stats.maxDepth') }}: <br />
-              {{ resultData.maxDepth }}</span
-            >
-            <span
-              >{{ t('stats.maxStatesBorderSize') }}: <br />
-              {{ resultData.maxStateBorder }}</span
-            >
-            <span v-if="resultData.executionTime != -1"
-              >{{ t('stats.executionTime') }}: <br />
-              {{ resultData.executionTime.toFixed(2) }}ms</span
-            >
+        <div class="result-panel__stats-grid">
+          <article class="stats-card --steps">
+            <h4>{{ t('stats.solutionNodes') }}</h4>
+            <strong>{{ resultData.path.length }}</strong>
+          </article>
+          <article class="stats-card --generated">
+            <h4>{{ t('stats.generatedNodes') }}</h4>
+            <strong>{{ resultData.generatedNodes }}</strong>
+          </article>
+          <article class="stats-card --open">
+            <h4>{{ t('stats.openNodes') }}</h4>
+            <strong>{{ resultData.openNodes }}</strong>
+          </article>
+          <article class="stats-card --depth">
+            <h4>{{ t('stats.maxDepth') }}</h4>
+            <strong>{{ resultData.maxDepth }}</strong>
+          </article>
+          <article class="stats-card --border">
+            <h4>{{ t('stats.maxStatesBorderSize') }}</h4>
+            <strong>{{ resultData.maxStateBorder }}</strong>
+          </article>
+          <article class="stats-card --time">
+            <h4>{{ t('stats.executionTime') }}</h4>
+            <strong>{{ resultData.executionTime.toFixed(2) }}ms</strong>
+          </article>
+        </div>
+
+        <div class="result-panel__route">
+          <h3>{{ t('solution.routeTitle') }}</h3>
+
+          <div class="route-grid" :style="{ '--route-columns': routeColumns.toString() }">
+            <template :key="`route-step-${index}`" v-for="(data, index) in resultData.path">
+              <article
+                :class="{ '--goal': index === resultData.path.length - 1 }"
+                class="route-step"
+              >
+                <span class="route-step__index">{{
+                  index === 0 ? t('solution.initialStateLabel') : index
+                }}</span>
+                <GameStateBoard :gameSetupData="data" :showHeuristic="false" size="large" />
+
+                <span
+                  v-if="getRouteConnectorDirection(index, resultData.path.length) !== 'none'"
+                  :class="`--${getRouteConnectorDirection(index, resultData.path.length)}`"
+                  class="route-step__connector"
+                >
+                  {{
+                    getRouteConnectorDirection(index, resultData.path.length) === 'down' ? '↓' : '→'
+                  }}
+                </span>
+              </article>
+            </template>
           </div>
-
-          <div class="result__grid">
-            <GameStateBoard
-              showIndex
-              :key="index"
-              :index="Number(index)"
-              :gameSetupData="data"
-              class="result__grid-item"
-              v-for="(data, index) in resultData.path"
-            />
-          </div>
-        </section>
-      </template>
-
-      <template v-if="gameMode == 'step'">
-        <section class="content__result-container">
-          <h3>{{ t('solution.stepTitle') }}</h3>
-
-          <div class="result__stats">
-            <span
-              >{{ t('stats.generatedNodes') }}: <br />
-              {{ resultData.generatedNodes }}</span
-            >
-            <span
-              >{{ t('stats.openNodes') }}: <br />
-              {{ resultData.openNodes }}</span
-            >
-            <span
-              >{{ t('stats.maxDepth') }}: <br />
-              {{ resultData.maxDepth }}</span
-            >
-            <span
-              >{{ t('stats.maxQueueSize') }}: <br />
-              {{ resultData.maxStateBorder }}</span
-            >
-          </div>
-
-          <div class="result__options">
-            <a-button type="default" @click="resetResult">{{ t('actions.resetGame') }}</a-button>
-            <a-button type="default" @click="handleAdvanceStepGame">{{
-              t('actions.nextStep')
-            }}</a-button>
-          </div>
-
-          <h3>{{ t('solution.stateBorder') }}</h3>
-
-          <div class="result__grid --bordered">
-            <TransitionGroup name="gamestate-change">
-              <GameStateBoard
-                :key="index"
-                :index="Number(index)"
-                :gameSetupData="data"
-                class="result__grid-item"
-                v-for="(data, index) in resultData.stepPath"
-              />
-            </TransitionGroup>
-          </div>
-        </section>
-      </template>
+        </div>
+      </section>
     </a-layout-content>
 
     <a-layout-footer class="layout__footer" @click="handleOpenWebsite">
@@ -244,36 +268,45 @@
 import GameStateBoard from '@/components/shared/GameStateBoard.vue'
 import GameSetupBoardInput from '@/components/shared/GameSetupBoardInput.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
+import StateBorderStream from '@/components/shared/StateBorderStream.vue'
 
-import { computed, reactive, ref, watchEffect } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from 'vue'
 import { MenuOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 
 import type { IGameSetup } from '@/interfaces/IGameSetup'
-import type IAlgorithmClass from '@/interfaces/IAlgorithmClass'
 import type { AppLocale } from '@/i18n'
+import type {
+  SolverWorkerRequest,
+  SolverWorkerResponse,
+  SolverAlgorithm,
+  WorkerStateExpansion
+} from '@/workers/workerProtocol'
 
 import goalStateTemplate from '@/assets/goalStateTemplate'
 import manhattanDistance from '@/utils/manhattanDistance'
 import isSolvable from '@/utils/isSolvable'
-import BreadthFirstSearch from '@/utils/BreadthFirstSearch'
-import DepthFirstSearch from '@/utils/DepthFirstSearch'
-import GreedyBestFirstSearch from '@/utils/GreedyBestFirstSearch'
-import AStarSearch from '@/utils/AStarSearch'
 
 const { t, locale } = useI18n()
 
-const gameMode = ref<'step' | 'result'>('result')
 const aboutModalOpen = ref(false)
 const gameSetupData = ref<IGameSetup>(Array(9).fill(''))
 const algorithmSetup = ref<'bfs' | 'dfs' | 'gs' | 'a*'>('bfs')
-const selectedAlgorithm = ref<IAlgorithmClass | null>(null)
+const minimumSimulationDurationMs = 2000
+const liveBorderProgressIntervalMs = 450
+const liveBorderAnimationDurationMs = 250
+const simulationWorker = ref<Worker | null>(null)
+const activeRunId = ref(0)
+const isCancelling = ref(false)
+const isPaused = ref(false)
+const liveBorderExpansions = ref<WorkerStateExpansion[]>([])
+const routeColumns = ref(4)
+
 const resultData = reactive({
   show: false,
   loading: false,
   path: [] as IGameSetup[],
-  stepPath: [] as any,
   generatedNodes: 0 as number,
   openNodes: 0 as number,
   maxDepth: 0 as number,
@@ -318,6 +351,9 @@ const algorithmOptions = computed(() => [
   }
 ])
 
+const showResult = computed(() => resultData.show && resultData.path.length > 0)
+const showSimulationScreen = computed(() => resultData.loading || showResult.value)
+
 watchEffect(() => {
   if (typeof document === 'undefined') {
     return
@@ -328,20 +364,24 @@ watchEffect(() => {
 })
 
 function resetResult() {
-  gameMode.value = 'result'
   resultData.show = false
   resultData.loading = false
   resultData.path = []
-  resultData.stepPath = []
   resultData.generatedNodes = 0
+  resultData.openNodes = 0
   resultData.maxDepth = 0
   resultData.maxStateBorder = 0
   resultData.executionTime = 0
-
-  selectedAlgorithm.value?.resetState()
+  liveBorderExpansions.value = []
+  isCancelling.value = false
+  isPaused.value = false
 }
 
 function genRandomGameSetup() {
+  if (resultData.loading) {
+    return
+  }
+
   resetResult()
 
   let randomSetup = createShuffledSetup()
@@ -366,96 +406,181 @@ function createShuffledSetup() {
   return randomSetup as IGameSetup
 }
 
-async function handleStepGame() {
-  if (!gameSetupIsValid()) {
+function createWorkerIfNeeded() {
+  if (simulationWorker.value) {
     return
   }
 
-  resetResult()
+  simulationWorker.value = new Worker(
+    new URL('../../workers/puzzleSolver.worker.ts', import.meta.url),
+    {
+      type: 'module'
+    }
+  )
 
-  gameMode.value = 'step'
-
-  switch (algorithmSetup.value) {
-    case 'bfs':
-      selectedAlgorithm.value = new BreadthFirstSearch(gameSetupData.value)
-      break
-    case 'dfs':
-      selectedAlgorithm.value = new DepthFirstSearch(gameSetupData.value)
-      break
-    case 'gs':
-      selectedAlgorithm.value = new GreedyBestFirstSearch(gameSetupData.value)
-      break
-    case 'a*':
-      selectedAlgorithm.value = new AStarSearch(gameSetupData.value)
-      break
+  simulationWorker.value.onmessage = (event: MessageEvent<SolverWorkerResponse>) => {
+    handleWorkerMessage(event.data)
   }
 
-  handleAdvanceStepGame()
+  simulationWorker.value.onerror = () => {
+    resultData.loading = false
+    isCancelling.value = false
+    isPaused.value = false
+    message.error(t('messages.simulationError'))
+  }
 }
 
-function handleAdvanceStepGame() {
-  if (!selectedAlgorithm.value) {
+function handleWorkerMessage(workerMessage: SolverWorkerResponse) {
+  if (workerMessage.payload.runId !== activeRunId.value) {
     return
   }
 
-  selectedAlgorithm.value.advanceOneStep()
+  if (workerMessage.type === 'PROGRESS') {
+    resultData.generatedNodes = workerMessage.payload.generatedNodes
+    resultData.openNodes = workerMessage.payload.openNodes
+    resultData.maxDepth = workerMessage.payload.maxDepth
+    resultData.maxStateBorder = workerMessage.payload.maxStateBorder
+    resultData.executionTime = workerMessage.payload.elapsedMs
+    liveBorderExpansions.value = workerMessage.payload.expansions
 
-  resultData.stepPath = selectedAlgorithm.value.getSearchQueue()
-  resultData.generatedNodes = selectedAlgorithm.value.getGeneratedNodesCount()
-  resultData.maxDepth = selectedAlgorithm.value.getMaxDepth()
-  resultData.maxStateBorder = selectedAlgorithm.value.getMaxNodesInSpace()
-  resultData.openNodes = selectedAlgorithm.value.getOpenNodesCount()
-  resultData.path = selectedAlgorithm.value.getOptimalPath()
-  resultData.executionTime = -1
+    return
+  }
 
-  console.log(resultData.stepPath)
+  if (workerMessage.type === 'CANCELLED') {
+    resultData.loading = false
+    isCancelling.value = false
+    isPaused.value = false
+    liveBorderExpansions.value = []
+    message.info(t('messages.simulationCancelled'))
 
-  if (selectedAlgorithm.value.isSolved()) {
-    gameMode.value = 'result'
+    return
+  }
+
+  if (workerMessage.type === 'PAUSED') {
+    isPaused.value = true
+    message.info(t('messages.simulationPaused'))
+
+    return
+  }
+
+  if (workerMessage.type === 'RESUMED') {
+    isPaused.value = false
+    message.info(t('messages.simulationResumed'))
+
+    return
+  }
+
+  if (workerMessage.type === 'ERROR') {
+    resultData.loading = false
+    isCancelling.value = false
+    isPaused.value = false
+    liveBorderExpansions.value = []
+    message.error(t(workerMessage.payload.messageKey))
+
+    return
+  }
+
+  if (workerMessage.type === 'COMPLETE') {
+    resultData.loading = false
+    isCancelling.value = false
+    isPaused.value = false
+    liveBorderExpansions.value = []
+
+    resultData.generatedNodes = workerMessage.payload.generatedNodes
+    resultData.openNodes = workerMessage.payload.openNodes
+    resultData.maxDepth = workerMessage.payload.maxDepth
+    resultData.maxStateBorder = workerMessage.payload.maxStateBorder
+    resultData.executionTime = workerMessage.payload.executionTime
+    resultData.path = workerMessage.payload.path
+
+    if (!workerMessage.payload.solved) {
+      resultData.show = false
+      message.error(t('messages.noSolution'))
+      return
+    }
+
     resultData.show = true
   }
 }
 
-async function handleStartGame() {
-  if (!gameSetupIsValid()) {
+function handleRunSimulation() {
+  if (resultData.loading || !gameSetupIsValid()) {
     return
   }
 
   resetResult()
-
   resultData.loading = true
-  await sleep(1000)
 
-  let algorithm
+  createWorkerIfNeeded()
+  activeRunId.value += 1
 
-  switch (algorithmSetup.value) {
-    case 'bfs':
-      algorithm = new BreadthFirstSearch(gameSetupData.value)
-      break
-    case 'dfs':
-      algorithm = new DepthFirstSearch(gameSetupData.value)
-      break
-    case 'gs':
-      algorithm = new GreedyBestFirstSearch(gameSetupData.value)
-      break
-    case 'a*':
-      algorithm = new AStarSearch(gameSetupData.value)
-      break
+  const workerMessage: SolverWorkerRequest = {
+    type: 'START_SIMULATION',
+    payload: {
+      runId: activeRunId.value,
+      algorithm: algorithmSetup.value as SolverAlgorithm,
+      initialState: [...gameSetupData.value] as IGameSetup,
+      borderWindowSize: 12,
+      progressIntervalMs: liveBorderProgressIntervalMs,
+      minimumSimulationDurationMs
+    }
   }
 
-  algorithm.solve()
+  simulationWorker.value?.postMessage(workerMessage)
+}
 
-  resultData.path = algorithm.getOptimalPath()
-  resultData.generatedNodes = algorithm.getGeneratedNodesCount()
-  resultData.maxDepth = algorithm.getMaxDepth()
-  resultData.maxStateBorder = algorithm.getMaxNodesInSpace()
-  resultData.executionTime = algorithm.getExecutionTime()
-  resultData.openNodes = algorithm.getOpenNodesCount()
-  resultData.show = true
-  resultData.loading = false
+function handleCancelSimulation() {
+  if (!resultData.loading || isCancelling.value) {
+    return
+  }
+
+  isCancelling.value = true
+
+  const workerMessage: SolverWorkerRequest = {
+    type: 'CANCEL_SIMULATION',
+    payload: {
+      runId: activeRunId.value
+    }
+  }
+
+  simulationWorker.value?.postMessage(workerMessage)
+}
+
+function handlePauseSimulation() {
+  if (!resultData.loading || isPaused.value || isCancelling.value) {
+    return
+  }
+
+  const workerMessage: SolverWorkerRequest = {
+    type: 'PAUSE_SIMULATION',
+    payload: {
+      runId: activeRunId.value
+    }
+  }
+
+  simulationWorker.value?.postMessage(workerMessage)
+}
+
+function handleResumeSimulation() {
+  if (!resultData.loading || !isPaused.value || isCancelling.value) {
+    return
+  }
+
+  const workerMessage: SolverWorkerRequest = {
+    type: 'RESUME_SIMULATION',
+    payload: {
+      runId: activeRunId.value
+    }
+  }
+
+  simulationWorker.value?.postMessage(workerMessage)
 }
 
 function checkHValue() {
+  if (resultData.loading) {
+    return
+  }
+
   if (!gameSetupIsValid()) {
     return
   }
@@ -497,9 +622,62 @@ function handleOpenWebsite() {
   window.open('https://pumbadev.com', '_blank')
 }
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+function handleNewSimulation() {
+  resetResult()
 }
+
+function updateRouteColumns() {
+  if (typeof window === 'undefined') {
+    routeColumns.value = 4
+    return
+  }
+
+  if (window.innerWidth <= 560) {
+    routeColumns.value = 1
+    return
+  }
+
+  if (window.innerWidth <= 860) {
+    routeColumns.value = 2
+    return
+  }
+
+  if (window.innerWidth <= 1080) {
+    routeColumns.value = 3
+    return
+  }
+
+  routeColumns.value = 4
+}
+
+function getRouteConnectorDirection(index: number, pathLength: number): 'right' | 'down' | 'none' {
+  if (index >= pathLength - 1) {
+    return 'none'
+  }
+
+  if (routeColumns.value <= 1) {
+    return 'down'
+  }
+
+  return (index + 1) % routeColumns.value === 0 ? 'down' : 'right'
+}
+
+onMounted(() => {
+  updateRouteColumns()
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', updateRouteColumns)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', updateRouteColumns)
+  }
+
+  simulationWorker.value?.terminate()
+  simulationWorker.value = null
+})
 </script>
 
 <style lang="scss" scoped>
@@ -603,17 +781,6 @@ function sleep(ms: number) {
     display: flex;
     flex-direction: column;
     gap: 28px;
-
-    .content__about-action {
-      width: min(700px, 100%);
-      margin: 0 auto;
-      display: flex;
-      justify-content: flex-end;
-
-      @media (max-width: 425px) {
-        justify-content: center;
-      }
-    }
 
     .about-modal__content {
       display: flex;
@@ -745,18 +912,26 @@ function sleep(ms: number) {
         }
       }
 
-      .game-container__footer-buttons {
+      .game-container__actions {
         display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
         gap: 20px;
 
         @media (max-width: 425px) {
           gap: 10px;
           flex-direction: column;
+          width: 100%;
+
+          :deep(button) {
+            width: 100%;
+          }
         }
       }
     }
 
-    .content__result-container {
+    .content__simulation-container {
+      width: min(980px, 100%);
       margin: 0 auto;
 
       display: flex;
@@ -764,89 +939,218 @@ function sleep(ms: number) {
       gap: 20px;
       align-items: center;
       justify-content: center;
+    }
 
-      .result__header {
+    .content__result-panel {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+
+      .result-panel__hero {
         display: flex;
-        flex-direction: row;
-        gap: 5px;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 12px;
+        border: 1px solid #bfdaf8;
+        background: linear-gradient(135deg, #f3f8ff 0%, #e9f2ff 100%);
 
         h3 {
-          text-align: center;
+          margin: 0;
+          font-size: 24px;
+        }
+
+        p {
+          margin: 4px 0 0;
+          color: #355f8f;
+          font-weight: 500;
         }
 
         img {
-          width: 17px;
-          height: 17px;
-          margin-bottom: 6px;
-        }
-      }
-
-      .result__stats {
-        display: flex;
-        gap: 10px;
-        flex-direction: column;
-
-        br {
-          display: none;
+          width: 18px;
+          height: 18px;
         }
 
-        @media (min-width: 512px) {
-          gap: 20px;
-          flex-direction: row;
-
-          br {
-            display: block;
-          }
-
-          span {
-            text-align: center;
-          }
-        }
-      }
-
-      .result__options {
-        display: flex;
-        gap: 20px;
-
-        @media (max-width: 425px) {
-          gap: 10px;
+        @media (max-width: 620px) {
           flex-direction: column;
+          align-items: flex-start;
         }
       }
 
-      .result__grid {
+      .result-panel__stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+
+        @media (max-width: 768px) {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        @media (max-width: 480px) {
+          grid-template-columns: 1fr;
+        }
+
+        .stats-card {
+          border: 1px solid #d8d8d8;
+          border-radius: 10px;
+          padding: 12px;
+
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+
+          h4 {
+            margin: 0;
+            font-size: 13px;
+            color: #4f4f4f;
+          }
+
+          strong {
+            font-size: 24px;
+            color: #1d1d1d;
+          }
+
+          &.--steps {
+            background: #e8f4ff;
+            border-color: #9ec8f3;
+          }
+
+          &.--generated {
+            background: #f3ebff;
+            border-color: #c8b0ff;
+          }
+
+          &.--open {
+            background: #e9fff4;
+            border-color: #93dfb3;
+          }
+
+          &.--depth {
+            background: #fff4e8;
+            border-color: #ffc27a;
+          }
+
+          &.--border {
+            background: #f3f5ff;
+            border-color: #aab4ff;
+          }
+
+          &.--time {
+            background: #fff0f0;
+            border-color: #f9abab;
+          }
+        }
+      }
+
+      .result-panel__route {
+        border: 1px solid #d4d4d4;
+        border-radius: 12px;
+        background: #fff;
+        padding: 14px;
+
         display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
+        flex-direction: column;
+        gap: 12px;
 
-        &.--bordered {
-          border: 1px solid #bababa;
-          border-radius: 5px;
-          padding: 10px;
+        h3 {
+          margin: 0;
+          font-size: 20px;
         }
 
-        flex-wrap: wrap;
+        .route-grid {
+          --route-columns: 4;
 
-        max-width: 90vw;
+          width: 100%;
+          display: grid;
+          grid-template-columns: repeat(var(--route-columns), minmax(0, 1fr));
+          align-items: stretch;
+          gap: 22px 26px;
+          padding: 4px 2px;
 
-        @media (min-width: 425px) {
-          max-width: 80vw;
+          .route-step {
+            width: 100%;
+            border: 1px solid #d8e2ed;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            padding: 10px;
+            position: relative;
+
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+
+            &.--goal {
+              border-color: #7ab686;
+              background: linear-gradient(180deg, #f2fff4 0%, #e8f9eb 100%);
+            }
+          }
+
+          .route-step__index {
+            min-width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            padding: 0 8px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 12px;
+            font-weight: 700;
+            background: #0d62b0;
+            color: white;
+          }
+
+          .route-step__connector {
+            position: absolute;
+            color: #2e77bf;
+            font-size: 18px;
+            line-height: 1;
+            font-weight: 700;
+
+            &.--right {
+              right: -20px;
+              top: 50%;
+              transform: translateY(-50%);
+            }
+
+            &.--down {
+              left: 50%;
+              bottom: -18px;
+              transform: translateX(-50%);
+            }
+          }
         }
 
-        @media (min-width: 768px) {
-          max-width: 70vw;
+        @media (max-width: 1080px) {
+          .route-grid {
+            gap: 20px 20px;
+          }
         }
 
-        @media (min-width: 1024px) {
-          max-width: 60vw;
-        }
+        @media (max-width: 560px) {
+          .route-grid {
+            gap: 16px;
 
-        @media (min-width: 1440px) {
-          max-width: 50vw;
+            .route-step {
+              max-width: 260px;
+              margin: 0 auto;
+            }
+          }
+        }
+      }
+
+      .result-panel__actions {
+        display: flex;
+        justify-content: flex-end;
+
+        @media (max-width: 620px) {
+          justify-content: center;
         }
       }
     }
@@ -858,17 +1162,6 @@ function sleep(ms: number) {
       cursor: pointer;
       text-decoration: underline;
     }
-  }
-
-  .gamestate-change-enter-active,
-  .gamestate-change-leave-active {
-    transition: all 0.8s ease;
-  }
-
-  .gamestate-change-enter-from,
-  .gamestate-change-leave-to {
-    opacity: 0;
-    transform: translateX(-15px);
   }
 }
 </style>

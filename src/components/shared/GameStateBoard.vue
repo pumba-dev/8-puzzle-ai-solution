@@ -4,7 +4,7 @@
       t('board.hValue', { value: manhattanDistance(gameSetupData) })
     }}</span>
 
-    <div class="gamestate-board">
+    <div class="gamestate-board" :class="`--${size}`">
       <template :key="index" v-for="(piece, index) in gameSetupData">
         <div class="board__peace">
           <span>{{ piece == '0' ? '' : piece }}</span>
@@ -25,11 +25,13 @@ interface Props {
   index?: number
   showIndex?: boolean
   showHeuristic?: boolean
+  size?: 'compact' | 'regular' | 'large'
   gameSetupData: IGameSetup
 }
 
 withDefaults(defineProps<Props>(), {
-  showHeuristic: true
+  showHeuristic: true,
+  size: 'compact'
 })
 
 const { t } = useI18n()
@@ -52,16 +54,46 @@ const { t } = useI18n()
     display: grid;
     grid-template-columns: repeat(3, 1fr);
 
+    &.--compact {
+      .board__peace {
+        width: 25px;
+        height: 25px;
+
+        span {
+          font-size: 18px;
+        }
+      }
+    }
+
+    &.--regular {
+      .board__peace {
+        width: 36px;
+        height: 36px;
+
+        span {
+          font-size: 23px;
+        }
+      }
+    }
+
+    &.--large {
+      .board__peace {
+        width: 52px;
+        height: 52px;
+
+        span {
+          font-size: 30px;
+        }
+      }
+    }
+
     .board__peace {
       border: 1px solid black;
-      width: 25px;
-      height: 25px;
       display: flex;
       justify-content: center;
       align-items: center;
 
       span {
-        font-size: 18px;
         color: black;
       }
     }

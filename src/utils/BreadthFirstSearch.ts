@@ -1,8 +1,7 @@
 import type { IGameSetup } from '@/interfaces/IGameSetup'
 import goalStateTemplate from '@/assets/goalStateTemplate'
 import type IAlgorithmClass from '@/interfaces/IAlgorithmClass'
-import { message } from 'ant-design-vue'
-import { translate } from '@/i18n'
+import type IStateExpansion from '@/interfaces/IStateExpansion'
 
 class Node {
   state: IGameSetup
@@ -28,6 +27,7 @@ export default class BreadthFirstSearch implements IAlgorithmClass {
   private searchQueue: Node[] = []
   private startTime: number = 0
   private algorithmEnd: boolean = false
+  private lastExpansion: IStateExpansion | null = null
 
   constructor(initialState: IGameSetup) {
     this.initialState = initialState
@@ -123,15 +123,15 @@ export default class BreadthFirstSearch implements IAlgorithmClass {
     this.executionTime = endTime - startTime
 
     this.algorithmEnd = true
-    message.error(translate('messages.noSolution'))
     return
   }
 
   advanceOneStep(): IGameSetup | null {
     if (this.algorithmEnd) {
-      message.warning(translate('messages.algorithmCompleted'))
       return null
     }
+
+    this.lastExpansion = null
 
     if (this.searchQueue.length === 0) {
       const startTime = performance.now()
@@ -148,7 +148,6 @@ export default class BreadthFirstSearch implements IAlgorithmClass {
       this.executionTime = endTime - this.startTime
 
       this.algorithmEnd = true
-      message.error(translate('messages.noSolution'))
       return null
     }
 
@@ -173,6 +172,7 @@ export default class BreadthFirstSearch implements IAlgorithmClass {
       this.maxDepth = Math.max(this.maxDepth, depth)
 
       const nextStates = this.generateNextStates(currentState)
+      const openedStates: IGameSetup[] = []
 
       this.generatedNodes += nextStates.length
 
@@ -180,7 +180,13 @@ export default class BreadthFirstSearch implements IAlgorithmClass {
         const nextStateString = nextState.join('')
         if (!this.visitedStates.has(nextStateString)) {
           this.searchQueue.push(new Node(nextState, currentNode))
+          openedStates.push([...nextState] as IGameSetup)
         }
+      }
+
+      this.lastExpansion = {
+        parentState: [...currentState] as IGameSetup,
+        openedStates
       }
 
       this.maxNodesInSpace = Math.max(this.maxNodesInSpace, this.searchQueue.length)
@@ -204,6 +210,7 @@ export default class BreadthFirstSearch implements IAlgorithmClass {
     this.openNodes = 0
     this.startTime = 0
     this.algorithmEnd = false
+    this.lastExpansion = null
   }
 
   getSearchQueue(): IGameSetup[] {
@@ -236,6 +243,10 @@ export default class BreadthFirstSearch implements IAlgorithmClass {
 
   getOpenNodesCount(): number {
     return this.openNodes
+  }
+
+  getLastExpansion(): IStateExpansion | null {
+    return this.lastExpansion
   }
 
   isSolved(): boolean {

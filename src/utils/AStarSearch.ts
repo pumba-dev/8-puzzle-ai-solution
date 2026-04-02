@@ -2,8 +2,7 @@ import type { IGameSetup } from '@/interfaces/IGameSetup'
 import manhattanDistance from '@/utils/manhattanDistance'
 import goalStateTemplate from '@/assets/goalStateTemplate'
 import type IAlgorithmClass from '@/interfaces/IAlgorithmClass'
-import { message } from 'ant-design-vue'
-import { translate } from '@/i18n'
+import type IStateExpansion from '@/interfaces/IStateExpansion'
 
 class Node {
   state: IGameSetup
@@ -35,6 +34,7 @@ export default class AStarSearch implements IAlgorithmClass {
   private priorityQueue: Node[] = []
   private startTime: number = 0
   private algorithmEnd: boolean = false
+  private lastExpansion: IStateExpansion | null = null
 
   constructor(initialState: IGameSetup) {
     this.initialState = initialState
@@ -140,7 +140,6 @@ export default class AStarSearch implements IAlgorithmClass {
     this.executionTime = endTime - startTime
 
     this.algorithmEnd = true
-    message.error(translate('messages.noSolution'))
     return
   }
 
@@ -155,13 +154,15 @@ export default class AStarSearch implements IAlgorithmClass {
     this.openNodes = 0
     this.startTime = 0
     this.algorithmEnd = false
+    this.lastExpansion = null
   }
 
   advanceOneStep(): IGameSetup | null {
     if (this.algorithmEnd) {
-      message.warning(translate('messages.algorithmCompleted'))
       return null
     }
+
+    this.lastExpansion = null
 
     if (this.visitedStates.size === 0) {
       // Initialize the search
@@ -179,7 +180,6 @@ export default class AStarSearch implements IAlgorithmClass {
       this.executionTime = endTime - this.startTime
 
       this.algorithmEnd = true
-      message.error(translate('messages.noSolution'))
       return null
     }
 
@@ -202,6 +202,7 @@ export default class AStarSearch implements IAlgorithmClass {
       this.maxDepth = Math.max(this.maxDepth, depth)
 
       const nextStates = this.generateNextStates(currentState, currentNode.gCost)
+      const openedStates: IGameSetup[] = []
 
       this.generatedNodes += nextStates.length
 
@@ -211,7 +212,13 @@ export default class AStarSearch implements IAlgorithmClass {
           this.priorityQueue.push(
             new Node(nextState.state, currentNode, nextState.gCost, nextState.hCost)
           )
+          openedStates.push([...nextState.state] as IGameSetup)
         }
+      }
+
+      this.lastExpansion = {
+        parentState: [...currentState] as IGameSetup,
+        openedStates
       }
 
       this.priorityQueue.sort((a, b) => a.fCost - b.fCost)
@@ -254,6 +261,10 @@ export default class AStarSearch implements IAlgorithmClass {
 
   getOpenNodesCount(): number {
     return this.openNodes
+  }
+
+  getLastExpansion(): IStateExpansion | null {
+    return this.lastExpansion
   }
 
   isSolved(): boolean {

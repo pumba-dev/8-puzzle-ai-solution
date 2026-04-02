@@ -1,8 +1,7 @@
 import type { IGameSetup } from '@/interfaces/IGameSetup'
 import goalStateTemplate from '@/assets/goalStateTemplate'
 import type IAlgorithmClass from '@/interfaces/IAlgorithmClass'
-import { message } from 'ant-design-vue'
-import { translate } from '@/i18n'
+import type IStateExpansion from '@/interfaces/IStateExpansion'
 
 class Node {
   state: IGameSetup
@@ -30,6 +29,7 @@ export default class DepthFirstSearch implements IAlgorithmClass {
   private stack: Node[] = []
   private startTime: number = 0
   private algorithmEnd: boolean = false
+  private lastExpansion: IStateExpansion | null = null
 
   constructor(initialState: IGameSetup) {
     this.initialState = initialState
@@ -128,7 +128,6 @@ export default class DepthFirstSearch implements IAlgorithmClass {
     this.executionTime = endTime - startTime
 
     this.algorithmEnd = true
-    message.error(translate('messages.noSolution'))
     return
   }
 
@@ -144,13 +143,15 @@ export default class DepthFirstSearch implements IAlgorithmClass {
     this.startTime = 0
     this.openNodes = 0
     this.algorithmEnd = false
+    this.lastExpansion = null
   }
 
   advanceOneStep(): IGameSetup | null {
     if (this.algorithmEnd) {
-      message.warning(translate('messages.algorithmCompleted'))
       return null
     }
+
+    this.lastExpansion = null
 
     if (this.visitedStates.size === 0) {
       // Initialize the search
@@ -166,7 +167,6 @@ export default class DepthFirstSearch implements IAlgorithmClass {
       this.executionTime = endTime - this.startTime
 
       this.algorithmEnd = true
-      message.error(translate('messages.noSolution'))
       return null
     }
 
@@ -189,6 +189,7 @@ export default class DepthFirstSearch implements IAlgorithmClass {
       this.maxDepth = Math.max(this.maxDepth, depth)
 
       const nextStates = this.generateNextStates(currentState)
+      const openedStates: IGameSetup[] = []
 
       this.generatedNodes += nextStates.length
 
@@ -196,7 +197,13 @@ export default class DepthFirstSearch implements IAlgorithmClass {
         const nextStateString = nextState.join('')
         if (!this.visitedStates.has(nextStateString)) {
           this.stack.push(new Node(nextState, currentNode, depth + 1))
+          openedStates.push([...nextState] as IGameSetup)
         }
+      }
+
+      this.lastExpansion = {
+        parentState: [...currentState] as IGameSetup,
+        openedStates
       }
 
       this.maxNodesInSpace = Math.max(this.maxNodesInSpace, this.stack.length)
@@ -237,6 +244,10 @@ export default class DepthFirstSearch implements IAlgorithmClass {
 
   getOpenNodesCount(): number {
     return this.openNodes
+  }
+
+  getLastExpansion(): IStateExpansion | null {
+    return this.lastExpansion
   }
 
   isSolved(): boolean {

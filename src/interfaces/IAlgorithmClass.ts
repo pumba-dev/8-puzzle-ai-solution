@@ -1,4 +1,5 @@
 import type { IGameSetup } from './IGameSetup'
+import type IStateExpansion from './IStateExpansion'
 
 export default interface IAlgorithmClass {
   solve(): void
@@ -13,4 +14,5 @@ export default interface IAlgorithmClass {
   getGeneratedNodesCount(): number
   getOpenNodesCount(): number
   getExecutionTime(): number
+  getLastExpansion(): IStateExpansion | null
 }

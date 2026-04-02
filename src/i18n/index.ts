@@ -35,29 +35,31 @@ const messages = {
     setup: {
       title: 'Game Setup',
       tooltip:
-        'Click each tile in the board to choose values from 0 to 8. Value 0 represents the empty spot.'
+        'Fill the 3x3 board with values from 0 to 8, without repeating numbers. Use 0 as the empty tile and click Run Simulation when ready.'
     },
     algorithms: {
       title: 'Search Algorithms',
       tooltip:
-        'Select the algorithm you want to use to search the state border. The heuristic used is Manhattan Distance.',
+        'Choose how the solver explores states. BFS/DFS do not use heuristics, while Greedy and A* use Manhattan Distance.',
       bfs: {
         label: 'Breadth First Search',
-        explanation: 'Explores all neighboring nodes before exploring child nodes.'
+        explanation:
+          'Tests states level by level. Reliable for shortest path, but can use more memory.'
       },
       dfs: {
         label: 'Depth First Search',
-        explanation: 'Explores all child nodes before exploring neighboring nodes.'
+        explanation:
+          'Follows one branch deeply before backtracking. Usually fast to start, but may take longer to find the best path.'
       },
       gs: {
         label: 'Greedy Search',
         explanation:
-          'Explores the node that appears to be the most promising according to a heuristic.'
+          'Always chooses the state that seems closest to the goal (heuristic only). Fast, but not always optimal.'
       },
       aStar: {
         label: 'A* Search',
         explanation:
-          'Explores the node that appears to be the most promising according to a heuristic and path cost.'
+          'Balances current path cost and heuristic estimate. Usually the best trade-off for quality and performance.'
       }
     },
     actions: {
@@ -65,13 +67,42 @@ const messages = {
       checkHValue: 'Check h-value',
       startGame: 'Start Game',
       stepByStep: 'Step By Step',
+      runSimulation: 'Run Simulation',
+      pauseSimulation: 'Pause Simulation',
+      resumeSimulation: 'Resume Simulation',
+      newSimulation: 'Start New Simulation',
+      cancelSimulation: 'Cancel Simulation',
       resetGame: 'Reset Game',
       nextStep: 'Next Step'
+    },
+    simulation: {
+      loadingTitle: 'Solving puzzle in background',
+      loadingDescription: 'The simulation is running in parallel. You can keep using the page.',
+      pausedDescription: 'Simulation paused. Inspect the current state and continue when ready.',
+      pausedBadge: 'Paused',
+      liveBorderTitle: 'Live State Border',
+      liveBorderEmpty: 'Waiting for first generated states...',
+      liveBorderExpansion: 'Expansion #{tick}',
+      liveBorderFromState: 'From state',
+      liveBorderOpenedStates: 'Opened states',
+      liveBorderNoNewStates: 'No new states opened in this expansion.',
+      elapsed: 'Elapsed',
+      cancelling: 'Cancelling...',
+      speed: {
+        label: 'State Opening Speed',
+        slow: 'Slow',
+        normal: 'Normal',
+        fast: 'Fast',
+        minimumDuration: 'Minimum simulation time: {seconds}s'
+      }
     },
     solution: {
       title: 'Solution',
       stepTitle: 'Step by Step Solution State',
-      stateBorder: 'State Border'
+      stateBorder: 'State Border',
+      routeTitle: 'Found Route',
+      routeSummary: 'Solved in {steps} steps',
+      initialStateLabel: 'Initial State'
     },
     stats: {
       solutionNodes: 'Solution Nodes',
@@ -82,12 +113,12 @@ const messages = {
       executionTime: 'Execution Time',
       maxQueueSize: 'Max Queue Size',
       tooltip: {
-        solutionNodes: 'The number of operations required to reach the goal state.',
-        generatedNodes: 'The number of different nodes generated during the search.',
-        openNodes: 'The number of nodes opened during the search.',
-        maxDepth: 'The maximum depth reached by the search.',
-        maxStatesBorderSize: 'The maximum number of nodes in the state border.',
-        executionTime: 'The time taken to find the solution (in milliseconds).'
+        solutionNodes: 'Number of steps in the final route from initial state to goal.',
+        generatedNodes: 'Total candidate states created by the algorithm.',
+        openNodes: 'States actually expanded during the search.',
+        maxDepth: 'Deepest level reached in the search tree.',
+        maxStatesBorderSize: 'Largest frontier size kept in memory at once.',
+        executionTime: 'Total time to find the result (milliseconds).'
       }
     },
     boardInput: {
@@ -104,7 +135,11 @@ const messages = {
       invalidSetup: 'Please, insert a valid game setup.',
       unsolvableSetup: 'This setup is not solvable. Please, insert a solvable game setup.',
       noSolution: 'No solution found!',
-      algorithmCompleted: 'Algorithm already completed.'
+      algorithmCompleted: 'Algorithm already completed.',
+      simulationCancelled: 'Simulation cancelled.',
+      simulationPaused: 'Simulation paused.',
+      simulationResumed: 'Simulation resumed.',
+      simulationError: 'An error happened while running the simulation.'
     }
   },
   'pt-BR': {
@@ -140,27 +175,31 @@ const messages = {
     setup: {
       title: 'Configuracao do Jogo',
       tooltip:
-        'Clique em cada peca do tabuleiro para escolher valores de 0 a 8. O valor 0 representa o espaco vazio.'
+        'Preencha o tabuleiro 3x3 com valores de 0 a 8, sem repetir numeros. Use 0 como espaco vazio e clique em Executar Simulacao quando terminar.'
     },
     algorithms: {
       title: 'Algoritmos de Busca',
       tooltip:
-        'Selecione o algoritmo para realizar a busca na borda de estados. A heuristica utilizada e Distancia de Manhattan.',
+        'Escolha como o solver explora os estados. BFS/DFS nao usam heuristica; Gulosa e A* usam Distancia de Manhattan.',
       bfs: {
         label: 'Busca em Largura',
-        explanation: 'Explora todos os nos vizinhos antes de explorar os nos filhos.'
+        explanation:
+          'Explora nivel por nivel. Costuma encontrar o menor caminho, mas pode consumir mais memoria.'
       },
       dfs: {
         label: 'Busca em Profundidade',
-        explanation: 'Explora todos os nos filhos antes de explorar os nos vizinhos.'
+        explanation:
+          'Vai fundo em um ramo antes de voltar. Comeca rapido, mas pode demorar mais para achar o melhor caminho.'
       },
       gs: {
         label: 'Busca Gulosa',
-        explanation: 'Explora o no que parece mais promissor de acordo com uma heuristica.'
+        explanation:
+          'Sempre escolhe o estado que parece mais perto do objetivo (apenas heuristica). E rapida, mas nem sempre otimiza o caminho.'
       },
       aStar: {
         label: 'Busca A*',
-        explanation: 'Explora o no mais promissor de acordo com heuristica e custo do caminho.'
+        explanation:
+          'Combina custo do caminho com heuristica. Geralmente oferece melhor equilibrio entre qualidade e desempenho.'
       }
     },
     actions: {
@@ -168,13 +207,43 @@ const messages = {
       checkHValue: 'Verificar h-value',
       startGame: 'Iniciar Jogo',
       stepByStep: 'Passo a Passo',
+      runSimulation: 'Executar Simulacao',
+      pauseSimulation: 'Pausar Simulacao',
+      resumeSimulation: 'Continuar Simulacao',
+      newSimulation: 'Fazer nova simulacao',
+      cancelSimulation: 'Cancelar Simulacao',
       resetGame: 'Reiniciar Jogo',
       nextStep: 'Proximo Passo'
+    },
+    simulation: {
+      loadingTitle: 'Resolvendo puzzle em segundo plano',
+      loadingDescription:
+        'A simulacao esta rodando em paralelo. Voce pode continuar usando a pagina.',
+      pausedDescription: 'Simulacao pausada. Veja o estado atual e continue quando quiser.',
+      pausedBadge: 'Pausada',
+      liveBorderTitle: 'Borda de Estados em Tempo Real',
+      liveBorderEmpty: 'Aguardando os primeiros estados gerados...',
+      liveBorderExpansion: 'Expansao #{tick}',
+      liveBorderFromState: 'Estado de origem',
+      liveBorderOpenedStates: 'Estados abertos',
+      liveBorderNoNewStates: 'Nenhum novo estado foi aberto nesta expansao.',
+      elapsed: 'Tempo',
+      cancelling: 'Cancelando...',
+      speed: {
+        label: 'Velocidade de Abertura dos Estados',
+        slow: 'Lenta',
+        normal: 'Normal',
+        fast: 'Rapida',
+        minimumDuration: 'Tempo minimo da simulacao: {seconds}s'
+      }
     },
     solution: {
       title: 'Solucao',
       stepTitle: 'Estado da Solucao Passo a Passo',
-      stateBorder: 'Borda de Estados'
+      stateBorder: 'Borda de Estados',
+      routeTitle: 'Rota Encontrada',
+      routeSummary: 'Resolvido em {steps} passos',
+      initialStateLabel: 'Estado Inicial'
     },
     stats: {
       solutionNodes: 'Nos da Solucao',
@@ -185,12 +254,12 @@ const messages = {
       executionTime: 'Tempo de Execucao',
       maxQueueSize: 'Tamanho Maximo da Fila',
       tooltip: {
-        solutionNodes: 'Quantidade de operacoes necessarias para chegar ao estado objetivo.',
-        generatedNodes: 'Quantidade de nos diferentes gerados durante a busca.',
-        openNodes: 'Quantidade de nos abertos durante a busca.',
-        maxDepth: 'Maior profundidade alcancada durante a busca.',
-        maxStatesBorderSize: 'Maior quantidade de nos na borda de estados.',
-        executionTime: 'Tempo gasto para encontrar a solucao (em milissegundos).'
+        solutionNodes: 'Quantidade de passos da rota final do estado inicial ate o objetivo.',
+        generatedNodes: 'Total de estados candidatos gerados pelo algoritmo.',
+        openNodes: 'Estados que realmente foram expandidos na busca.',
+        maxDepth: 'Maior nivel atingido na arvore de busca.',
+        maxStatesBorderSize: 'Maior tamanho da fronteira mantida em memoria ao mesmo tempo.',
+        executionTime: 'Tempo total para encontrar o resultado (em milissegundos).'
       }
     },
     boardInput: {
@@ -207,7 +276,11 @@ const messages = {
       invalidSetup: 'Por favor, insira uma configuracao valida do jogo.',
       unsolvableSetup: 'Esta configuracao nao tem solucao. Insira uma configuracao solucionavel.',
       noSolution: 'Nenhuma solucao encontrada!',
-      algorithmCompleted: 'O algoritmo ja foi concluido.'
+      algorithmCompleted: 'O algoritmo ja foi concluido.',
+      simulationCancelled: 'Simulacao cancelada.',
+      simulationPaused: 'Simulacao pausada.',
+      simulationResumed: 'Simulacao continuada.',
+      simulationError: 'Ocorreu um erro durante a simulacao.'
     }
   },
   'es-ES': {
@@ -243,27 +316,31 @@ const messages = {
     setup: {
       title: 'Configuracion del Juego',
       tooltip:
-        'Haz clic en cada ficha del tablero para elegir valores de 0 a 8. El valor 0 representa el espacio vacio.'
+        'Completa el tablero 3x3 con valores de 0 a 8 sin repetir numeros. Usa 0 como espacio vacio y pulsa Ejecutar Simulacion al terminar.'
     },
     algorithms: {
       title: 'Algoritmos de Busqueda',
       tooltip:
-        'Selecciona el algoritmo para realizar la busqueda en la frontera de estados. La heuristica usada es Distancia Manhattan.',
+        'Elige como el solver explora estados. BFS/DFS no usan heuristica; Voraz y A* usan Distancia Manhattan.',
       bfs: {
         label: 'Busqueda en Anchura',
-        explanation: 'Explora todos los nodos vecinos antes de explorar los nodos hijos.'
+        explanation:
+          'Explora nivel por nivel. Suele hallar la ruta mas corta, pero puede usar mas memoria.'
       },
       dfs: {
         label: 'Busqueda en Profundidad',
-        explanation: 'Explora todos los nodos hijos antes de explorar los nodos vecinos.'
+        explanation:
+          'Profundiza en una rama antes de retroceder. Arranca rapido, pero puede tardar mas en encontrar la mejor ruta.'
       },
       gs: {
         label: 'Busqueda Voraz',
-        explanation: 'Explora el nodo que parece mas prometedor segun una heuristica.'
+        explanation:
+          'Siempre elige el estado que parece mas cercano al objetivo (solo heuristica). Es rapida, pero no siempre optimiza la ruta.'
       },
       aStar: {
         label: 'Busqueda A*',
-        explanation: 'Explora el nodo mas prometedor segun heuristica y costo del camino.'
+        explanation:
+          'Combina costo de camino y heuristica. Normalmente ofrece el mejor equilibrio entre calidad y rendimiento.'
       }
     },
     actions: {
@@ -271,13 +348,42 @@ const messages = {
       checkHValue: 'Comprobar h-value',
       startGame: 'Iniciar Juego',
       stepByStep: 'Paso a Paso',
+      runSimulation: 'Ejecutar Simulacion',
+      pauseSimulation: 'Pausar Simulacion',
+      resumeSimulation: 'Continuar Simulacion',
+      newSimulation: 'Hacer nueva simulacion',
+      cancelSimulation: 'Cancelar Simulacion',
       resetGame: 'Reiniciar Juego',
       nextStep: 'Siguiente Paso'
+    },
+    simulation: {
+      loadingTitle: 'Resolviendo puzzle en segundo plano',
+      loadingDescription: 'La simulacion se ejecuta en paralelo. Puedes seguir usando la pagina.',
+      pausedDescription: 'Simulacion pausada. Revisa el estado actual y continua cuando quieras.',
+      pausedBadge: 'Pausada',
+      liveBorderTitle: 'Frontera de Estados en Vivo',
+      liveBorderEmpty: 'Esperando los primeros estados generados...',
+      liveBorderExpansion: 'Expansion #{tick}',
+      liveBorderFromState: 'Estado de origen',
+      liveBorderOpenedStates: 'Estados abiertos',
+      liveBorderNoNewStates: 'No se abrieron estados nuevos en esta expansion.',
+      elapsed: 'Tiempo',
+      cancelling: 'Cancelando...',
+      speed: {
+        label: 'Velocidad de Apertura de Estados',
+        slow: 'Lenta',
+        normal: 'Normal',
+        fast: 'Rapida',
+        minimumDuration: 'Tiempo minimo de simulacion: {seconds}s'
+      }
     },
     solution: {
       title: 'Solucion',
       stepTitle: 'Estado de Solucion Paso a Paso',
-      stateBorder: 'Frontera de Estados'
+      stateBorder: 'Frontera de Estados',
+      routeTitle: 'Ruta Encontrada',
+      routeSummary: 'Resuelto en {steps} pasos',
+      initialStateLabel: 'Estado Inicial'
     },
     stats: {
       solutionNodes: 'Nodos de Solucion',
@@ -288,12 +394,13 @@ const messages = {
       executionTime: 'Tiempo de Ejecucion',
       maxQueueSize: 'Tamano Maximo de la Cola',
       tooltip: {
-        solutionNodes: 'Numero de operaciones necesarias para llegar al estado objetivo.',
-        generatedNodes: 'Numero de nodos distintos generados durante la busqueda.',
-        openNodes: 'Numero de nodos abiertos durante la busqueda.',
-        maxDepth: 'Profundidad maxima alcanzada durante la busqueda.',
-        maxStatesBorderSize: 'Numero maximo de nodos en la frontera de estados.',
-        executionTime: 'Tiempo empleado para encontrar la solucion (en milisegundos).'
+        solutionNodes:
+          'Cantidad de pasos de la ruta final desde el estado inicial hasta el objetivo.',
+        generatedNodes: 'Total de estados candidatos generados por el algoritmo.',
+        openNodes: 'Estados que realmente se expandieron durante la busqueda.',
+        maxDepth: 'Nivel mas profundo alcanzado en el arbol de busqueda.',
+        maxStatesBorderSize: 'Tamano maximo de la frontera mantenida en memoria al mismo tiempo.',
+        executionTime: 'Tiempo total para encontrar el resultado (en milisegundos).'
       }
     },
     boardInput: {
@@ -310,7 +417,11 @@ const messages = {
       invalidSetup: 'Por favor, inserta una configuracion valida del juego.',
       unsolvableSetup: 'Esta configuracion no tiene solucion. Inserta una configuracion resoluble.',
       noSolution: 'No se encontro solucion!',
-      algorithmCompleted: 'El algoritmo ya fue completado.'
+      algorithmCompleted: 'El algoritmo ya fue completado.',
+      simulationCancelled: 'Simulacion cancelada.',
+      simulationPaused: 'Simulacion pausada.',
+      simulationResumed: 'Simulacion reanudada.',
+      simulationError: 'Ocurrio un error durante la simulacion.'
     }
   }
 }
